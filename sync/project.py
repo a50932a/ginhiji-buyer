@@ -12,7 +12,7 @@ from urllib.parse import urlsplit
 
 from sync.errors import SchemaError
 from sync.images import image_ref
-from sync.money import date_prefix, half_up_int, norm_amount, plain_number, reject_email, source_int
+from sync.money import half_up_int, norm_amount, plain_number, public_date, reject_email, source_int
 
 GROUP_STATUSES = {"open", "closed", "arrived", "settled"}
 ITEM_STATUSES = {"recorded", "ordered", "shipped", "packing", "delivered", "completed"}
@@ -177,7 +177,7 @@ def _project_group(detail: dict, items_by_group: dict[str, list[dict]], offsets,
             amount = plain_number(payment.get("amount"))
             if amount <= 0:
                 raise SchemaError("收款金額必須是正數")
-            paid_at = date_prefix(payment.get("paidAt"))
+            paid_at = public_date(payment.get("paidAt"), "paidAt")
             note = reject_email(payment.get("note"))
             flag = offsets(group_id, buyer, amount, paid_at, note)
             payments.append([amount, paid_at, note, flag])
@@ -204,7 +204,7 @@ def _project_group(detail: dict, items_by_group: dict[str, list[dict]], offsets,
     status = group.get("status")
     if status not in GROUP_STATUSES:
         raise SchemaError("團購狀態不正確")
-    started = date_prefix(group.get("startedAt"))
+    started = public_date(group.get("startedAt"), "startedAt")
     if not started:
         raise SchemaError("缺少成立日期")
     currency = str(group.get("currency") or "").strip().upper() or "TWD"
