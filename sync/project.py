@@ -1,0 +1,417 @@
+"""把允許清單內的團購收成網站既有的公開形狀。
+
+公開物件只保留 index.html 已經在用的欄位。成本匯率、利潤、成員、
+支付、訂單備註與品項備註都不會寫進結果。
+"""
+
+from __future__ import annotations
+
+import re
+from typing import Callable
+from urllib.parse import urlsplit
+
+from sync.errors import SchemaError
+from sync.images import image_ref
+from sync.money import date_prefix, half_up_int, norm_amount, plain_number, reject_email, source_int
+
+GROUP_STATUSES = {"open", "closed", "arrived", "settled"}
+ITEM_STATUSES = {"recorded", "ordered", "shipped", "packing", "delivered", "completed"}
+CURRENCY_LABEL = {"JPY": "日幣", "CNY": "人民幣", "TWD": "台幣", "NTD": "台幣"}
+_ID = re.compile(r"^[0-9a-f]{32}$")
+_CURRENCY = re.compile(r"^[A-Z]{3,4}$")
+
+TOP_KEYS = {"fetchedAt", "gbs", "buyers", "billing"}
+GROUP_KEYS = {"id", "n", "src", "cur", "st", "dt", "img", "url", "rate", "fees", "o"}
+ORDER_KEYS = {"b", "self", "gc", "fc", "charge", "sv", "paid", "rem", "it", "pay"}
+BUYER_KEYS = {"n", "gc", "q", "charge", "paid", "rem", "off", "offs", "lines"}
+BILLING_KEYS = {"items", "empty", "buyers"}
+BILLING_LINE_KEYS = {"name", "amount", "note"}
+BILLING_BUYER_KEYS = {"name", "total", "items"}
+
+
+def project_publication(
+    details: list[dict],
+    items_by_group: dict[str, list[dict]],
+    summary_buyers: list[dict],
+    *,
+    previous: dict | None,
+    billing_ids: list[str],
+    fetched_at: str,
+    empty_text: str,
+) -> tuple[dict, dict[str, str]]:
+    offsets = _offset_index(previous)
+    images: dict[str, str] = {}
+    groups = []
+    for detail in details:
+        group = _project_group(detail, items_by_group, offsets, images)
+        groups.append(group)
+    groups.sort(key=lambda group: group["id"])
+    groups.sort(key=lambda group: group["dt"], reverse=True)
+    buyers = _build_buyers(groups)
+    _assert_summary(buyers, summary_buyers)
+    billing = _build_billing(groups, billing_ids, empty_text)
+    public = {
+        "fetchedAt": fetched_at,
+        "gbs": groups,
+        "buyers": buyers,
+        "billing": billing,
+    }
+    validate_public(public)
+    return public, images
+
+
+def validate_public(public: dict) -> None:
+    if set(public) != TOP_KEYS:
+        raise SchemaError("公開資料的頂層欄位與網站不一致")
+    if not isinstance(public["gbs"], list) or not public["gbs"]:
+        raise SchemaError("公開團購是空的")
+    seen = set()
+    for group in public["gbs"]:
+        if set(group) != GROUP_KEYS:
+            raise SchemaError("團購公開欄位與網站不一致")
+        if not _ID.fullmatch(group["id"]) or group["id"] in seen:
+            raise SchemaError("團購 id 不正確或重複")
+        seen.add(group["id"])
+        if group["st"] not in GROUP_STATUSES:
+            raise SchemaError("團購狀態不正確")
+        for fee in group["fees"]:
+            if not isinstance(fee, list) or len(fee) != 3 or fee[2] not in ("foreign", "local"):
+                raise SchemaError("費用公開欄位與網站不一致")
+        for order in group["o"]:
+            if set(order) != ORDER_KEYS or order["self"] not in (0, 1):
+                raise SchemaError("訂單公開欄位與網站不一致")
+            for item in order["it"]:
+                if not isinstance(item, list) or len(item) != 6 or item[3] not in ITEM_STATUSES:
+                    raise SchemaError("品項公開欄位與網站不一致")
+            for payment in order["pay"]:
+                if not isinstance(payment, list) or len(payment) != 4 or payment[3] not in (0, 1):
+                    raise SchemaError("收款公開欄位與網站不一致")
+            if order["self"] and (order["charge"] or order["paid"] or order["rem"] or order["pay"]):
+                raise SchemaError("團主自留單不應公開應收或收款")
+    for buyer in public["buyers"]:
+        if set(buyer) != BUYER_KEYS:
+            raise SchemaError("買家公開欄位與網站不一致")
+    billing = public["billing"]
+    if set(billing) != BILLING_KEYS:
+        raise SchemaError("請款預告欄位與網站不一致")
+    for line in billing["items"]:
+        if set(line) != BILLING_LINE_KEYS:
+            raise SchemaError("請款預告欄位與網站不一致")
+    for buyer in billing["buyers"]:
+        if set(buyer) != BILLING_BUYER_KEYS:
+            raise SchemaError("請款預告欄位與網站不一致")
+        for line in buyer["items"]:
+            if set(line) != BILLING_LINE_KEYS:
+                raise SchemaError("請款預告欄位與網站不一致")
+
+
+def content_signature(public: dict | None) -> str | None:
+    if public is None:
+        return None
+    body = {key: value for key, value in public.items() if key != "fetchedAt"}
+    import json
+
+    return json.dumps(body, ensure_ascii=False, sort_keys=True, separators=(",", ":"))
+
+
+def _project_group(detail: dict, items_by_group: dict[str, list[dict]], offsets, images: dict[str, str]) -> dict:
+    try:
+        group = detail["groupBuy"]
+        orders = detail["orders"]
+        settlement_rows = detail["settlement"]["orders"]
+    except (KeyError, TypeError):
+        raise SchemaError("團購明細格式無法辨識") from None
+    group_id = str(group.get("id") or "")
+    if not _ID.fullmatch(group_id):
+        raise SchemaError("團購 id 格式不正確")
+    listed = items_by_group.get(group_id)
+    if listed is None:
+        raise SchemaError("缺少品項交叉核對")
+    _assert_items(orders, listed, group_id)
+    settlements = {}
+    for row in settlement_rows:
+        try:
+            settlements[str(row["orderId"])] = row
+        except (KeyError, TypeError):
+            raise SchemaError("結算格式無法辨識") from None
+    if set(settlements) != {str(order.get("id")) for order in orders}:
+        raise SchemaError("結算與訂單沒有對上")
+
+    fees = []
+    for fee in detail.get("fees") or []:
+        if fee.get("absorb") is True:
+            continue
+        currency = fee.get("currency")
+        if currency not in ("foreign", "local"):
+            raise SchemaError("費用幣別不正確")
+        name = reject_email(fee.get("name")).strip()
+        if not name:
+            raise SchemaError("費用名稱是空的")
+        fees.append([name, plain_number(fee.get("amount")), currency])
+
+    projected_orders = []
+    for order in orders:
+        row = settlements[str(order.get("id"))]
+        buyer = reject_email(order.get("buyerName")).strip()
+        if not buyer:
+            raise SchemaError("買家名稱是空的")
+        items = [_project_item(item, images) for item in order.get("items") or []]
+        if order.get("isSelf") is True:
+            projected_orders.append(
+                {
+                    "b": buyer,
+                    "self": 1,
+                    "gc": 0,
+                    "fc": 0,
+                    "charge": 0,
+                    "sv": source_int(row.get("charge"), "團主結算"),
+                    "paid": 0,
+                    "rem": 0,
+                    "it": items,
+                    "pay": [],
+                }
+            )
+            continue
+        payments = []
+        for payment in order.get("payments") or []:
+            amount = plain_number(payment.get("amount"))
+            if amount <= 0:
+                raise SchemaError("收款金額必須是正數")
+            paid_at = date_prefix(payment.get("paidAt"))
+            note = reject_email(payment.get("note"))
+            flag = offsets(group_id, buyer, amount, paid_at, note)
+            payments.append([amount, paid_at, note, flag])
+        payments.sort(key=lambda payment: (payment[1], norm_amount(payment[0]), payment[2]))
+        projected_orders.append(
+            {
+                "b": buyer,
+                "self": 0,
+                "gc": half_up_int(row.get("goodsCharge") or 0),
+                "fc": half_up_int(row.get("feeCharge") or 0),
+                "charge": source_int(row.get("charge"), "應收"),
+                "sv": 0,
+                "paid": source_int(row.get("paidSum"), "已收"),
+                "rem": source_int(row.get("remaining"), "未收"),
+                "it": items,
+                "pay": payments,
+            }
+        )
+    projected_orders.sort(key=lambda order: (order["self"], order["b"]))
+
+    name = reject_email(group.get("name")).strip()
+    if not name:
+        raise SchemaError("團名是空的")
+    status = group.get("status")
+    if status not in GROUP_STATUSES:
+        raise SchemaError("團購狀態不正確")
+    started = date_prefix(group.get("startedAt"))
+    if not started:
+        raise SchemaError("缺少成立日期")
+    currency = str(group.get("currency") or "").strip().upper() or "TWD"
+    if not _CURRENCY.fullmatch(currency):
+        raise SchemaError("幣別格式不正確")
+    rate = None if group.get("chargeRate") is None else plain_number(group.get("chargeRate"))
+    return {
+        "id": group_id,
+        "n": name,
+        "src": reject_email(group.get("source") or ""),
+        "cur": currency,
+        "st": status,
+        "dt": started,
+        "img": _remember_image(group.get("image"), images),
+        "url": _public_url(group.get("url")),
+        "rate": rate,
+        "fees": fees,
+        "o": projected_orders,
+    }
+
+
+def _project_item(item: dict, images: dict[str, str]) -> list:
+    status = item.get("status")
+    if status not in ITEM_STATUSES:
+        raise SchemaError("品項狀態不正確")
+    try:
+        quantity = int(item["quantity"])
+        unit_price = plain_number(item.get("unitPrice") or 0)
+    except (KeyError, TypeError, ValueError):
+        raise SchemaError("品項數量或單價不正確") from None
+    if quantity <= 0:
+        raise SchemaError("品項數量不正確")
+    name = reject_email(item.get("name")).strip()
+    if not name:
+        raise SchemaError("品項名稱是空的")
+    shipping = reject_email(item.get("shippingNumber") or "")
+    return [name, unit_price, quantity, status, shipping, _remember_image(item.get("image"), images)]
+
+
+def _remember_image(value: object, images: dict[str, str]) -> str:
+    key, url = image_ref(value)
+    if not key:
+        return ""
+    if not url:
+        raise SchemaError("圖片缺少來源位置")
+    previous = images.get(key)
+    if previous is not None and previous != url:
+        raise SchemaError("同一張公開圖片對到兩個來源")
+    images[key] = url
+    return key
+
+
+def _public_url(value: object) -> str:
+    if value is None or value == "":
+        return ""
+    text = str(value).strip()
+    parts = urlsplit(text)
+    if parts.scheme not in ("http", "https") or not parts.netloc:
+        raise SchemaError("商品連結格式不正確")
+    if parts.username or parts.password:
+        raise SchemaError("商品連結含有認證資訊")
+    return text
+
+
+def _assert_items(orders: list[dict], listed: list[dict], group_id: str) -> None:
+    detail = {}
+    for order in orders:
+        for item in order.get("items") or []:
+            item_id = str(item.get("id") or "")
+            if not item_id or item_id in detail:
+                raise SchemaError("品項 id 不正確或重複")
+            detail[item_id] = item
+    found = {}
+    for item in listed:
+        other_group = item.get("groupBuyId")
+        if other_group and str(other_group) != group_id:
+            raise SchemaError("品項回應含有這次沒有指定的團購")
+        item_id = str(item.get("id") or "")
+        if not item_id or item_id in found:
+            raise SchemaError("品項清單 id 不正確或重複")
+        found[item_id] = item
+    if set(detail) != set(found):
+        raise SchemaError("品項清單與團購明細不一致")
+    for item_id, item in detail.items():
+        other = found[item_id]
+        if str(other.get("status") or "") != str(item.get("status") or ""):
+            raise SchemaError("品項狀態與 /items 不一致")
+        if str(other.get("shippingNumber") or "") != str(item.get("shippingNumber") or ""):
+            raise SchemaError("寄件編號與 /items 不一致")
+        if image_ref(other.get("image"))[0] != image_ref(item.get("image"))[0]:
+            raise SchemaError("品項圖片與 /items 不一致")
+
+
+def _offset_index(previous: dict | None) -> Callable:
+    flags: dict[tuple, set[int]] = {}
+    for group in (previous or {}).get("gbs") or []:
+        for order in group.get("o") or []:
+            for payment in order.get("pay") or []:
+                if not isinstance(payment, list) or len(payment) < 4:
+                    continue
+                key = (group.get("id"), order.get("b"), norm_amount(payment[0]), payment[1], payment[2])
+                flags.setdefault(key, set()).add(int(payment[3]))
+
+    def lookup(group_id: str, buyer: str, amount, paid_at: str, note: str) -> int:
+        found = flags.get((group_id, buyer, norm_amount(amount), paid_at, note))
+        if found == {1}:
+            return 1
+        return 0
+
+    return lookup
+
+
+def _build_buyers(groups: list[dict]) -> list[dict]:
+    chronological = sorted(groups, key=lambda group: (group["dt"], group["id"]))
+    aggregated: dict[str, dict] = {}
+    for group in chronological:
+        for order in group["o"]:
+            if order["self"]:
+                continue
+            buyer = aggregated.setdefault(
+                order["b"],
+                {
+                    "n": order["b"],
+                    "gc": 0,
+                    "q": 0,
+                    "charge": 0,
+                    "paid": 0,
+                    "rem": 0,
+                    "off": 0,
+                    "offs": [],
+                    "lines": [],
+                },
+            )
+            buyer["gc"] += 1
+            buyer["q"] += sum(item[2] for item in order["it"])
+            buyer["charge"] += order["charge"]
+            buyer["paid"] += order["paid"]
+            buyer["rem"] += order["rem"]
+            if order["rem"] > 0:
+                buyer["lines"].append([group["n"], group["st"], order["charge"], order["rem"]])
+            for payment in order["pay"]:
+                if payment[3]:
+                    buyer["off"] += payment[0]
+                    buyer["offs"].append([group["n"], payment[1], payment[0], payment[2]])
+    return [aggregated[name] for name in sorted(aggregated)]
+
+
+def _assert_summary(buyers: list[dict], summary_buyers: list[dict]) -> None:
+    calculated = {buyer["n"]: buyer for buyer in buyers}
+    seen = set()
+    for row in summary_buyers:
+        if row.get("isSelfOnly") is True:
+            continue
+        try:
+            name = str(row["name"])
+            charge = source_int(row["charge"], "買家總覽應收")
+            paid = source_int(row["paidSum"], "買家總覽已收")
+            remaining = source_int(row["remaining"], "買家總覽未收")
+        except (KeyError, TypeError):
+            raise SchemaError("買家總覽格式無法辨識") from None
+        buyer = calculated.get(name)
+        if buyer is None:
+            if charge == 0 and paid == 0 and remaining == 0:
+                continue
+            raise SchemaError("買家總覽含有這次公開範圍以外的應收")
+        if buyer["charge"] != charge or buyer["paid"] != paid or buyer["rem"] != remaining:
+            raise SchemaError("買家總覽與來源結算整數不一致")
+        seen.add(name)
+    if set(calculated) - seen:
+        raise SchemaError("買家總覽少了已投影的買家")
+
+
+def _build_billing(groups: list[dict], billing_ids: list[str], empty_text: str) -> dict:
+    by_id = {group["id"]: group for group in groups}
+    items = []
+    buyers: dict[str, dict] = {}
+    for group_id in billing_ids:
+        group = by_id.get(group_id)
+        if group is None:
+            raise SchemaError("請款預告的團不在這次公開投影")
+        remaining = sum(order["rem"] for order in group["o"] if not order["self"])
+        if remaining <= 0:
+            continue
+        charge = sum(order["charge"] for order in group["o"] if not order["self"])
+        paid = sum(order["paid"] for order in group["o"] if not order["self"])
+        items.append({"name": group["n"], "amount": remaining, "note": _billing_note(group, charge, paid)})
+        for order in group["o"]:
+            if order["self"] or order["rem"] <= 0:
+                continue
+            buyer = buyers.setdefault(order["b"], {"name": order["b"], "total": 0, "items": []})
+            buyer["total"] += order["rem"]
+            buyer["items"].append({"name": group["n"], "amount": order["rem"], "note": ""})
+    ordered = sorted(buyers.values(), key=lambda buyer: (-buyer["total"], buyer["name"]))
+    return {"items": items, "empty": empty_text, "buyers": ordered}
+
+
+def _billing_note(group: dict, charge: int, paid: int) -> str:
+    if group["cur"] in ("TWD", "NTD"):
+        return f"應收 {charge:,}，已收 {paid:,}" if paid else ""
+    foreign = 0
+    for order in group["o"]:
+        if order["self"]:
+            continue
+        for item in order["it"]:
+            foreign += item[1] * item[2]
+    label = CURRENCY_LABEL.get(group["cur"], group["cur"])
+    note = f"{label} ¥{foreign:,.0f}" if float(foreign).is_integer() else f"{label} ¥{foreign}"
+    if paid:
+        note += f"・應收 {charge:,}，已收 {paid:,}"
+    return note
