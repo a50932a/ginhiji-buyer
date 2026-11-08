@@ -2,9 +2,7 @@
 
 網站：https://a50932a.github.io/ginhiji-buyer/
 
-這一頁給買家看自己參與的團購進度、應收與未付。金額是新台幣。頁首的「資料更新於」是**上次公開內容有變化**的時間，不是每次檢查來源的時間。
-
-目前提交的公開資料仍是 **2026-11-04 22:41** 的快照。這個分支沒有訂單 API 權杖，所以還沒有向來源做第一次成功刷新。
+這一頁給買家看自己參與的團購進度、應收與未付。金額是新台幣。頁首的「資料更新於」是**上次手動同步後公開內容有變化**的時間。網站不會自動更新。
 
 ## 公開資料長什麼樣子
 
@@ -32,7 +30,7 @@
 - 這一頁原本已經公開的 139 團
 - `01a1bb0ec8207669a9dcc46e4ed9fb32`（2026-11-07、日幣、狀態為截止的買家向團購）
 
-第二筆只先放 id。它的品項、金額與圖片要等權杖同步成功才會出現在 `data/public.json`。若審查後認為它不屬於這個站，從 `include` 刪掉即可，不需要改程式。
+若某一筆不屬於這個站，從 `include` 刪掉即可，不需要改程式。下次手動同步才會反映。
 
 請款預告維持原本那 14 團。付清的團會從預告消失，其他未付款團不會自動加進來。
 
@@ -57,18 +55,16 @@
 
 ## 同步怎麼跑
 
-訂單 API 指南沒有 webhook。`/api/orders/webhooks`、`/api/orders/webhook`、`/api/webhooks` 與 `/api/orders/events` 目前都是 404。所以用排程，另加手動執行。
+只有手動執行才會更新。到 GitHub Actions 執行 `sync-orders`，或在倉庫根目錄執行：
 
-| 項目 | 狀態 |
-| --- | --- |
-| 程式 | 已寫在 `sync/`，測試在 `tests/` |
-| GitHub Actions `sync-orders` | 檔案已放進倉庫，**合併到 `main` 之前不會執行** |
-| 週期 | 每天 09:17（Asia/Taipei），另可在 Actions 手動跑 |
-| 即時 | 不是。來源沒有可用的 webhook |
-| 這次是否已向來源刷新 | **沒有。** 這個環境沒有 `ORDERS_API_TOKEN` |
-| 是否已部署 | **沒有。** Pages 仍從 `main` 發佈，這個分支還沒合併 |
+```bash
+pip install -r requirements.txt
+ORDERS_API_TOKEN='權杖只放在這個環境' python3 -m sync.sync_orders
+```
 
-工作流程只在 `main` 跑。它用 `GET` 讀取：
+程式只讀環境變數 `ORDERS_API_TOKEN`，不讀 `~/.config/money-orders/token`。權杖不要寫進前端、倉庫或日誌。
+
+工作流程用 `GET` 讀取：
 
 - `/api/orders/group-buys`
 - `/api/orders/group-buys/{id}`
@@ -79,26 +75,7 @@
 
 內容與上一筆公開檔相同就結束，不提交。來源 401、403、連線失敗、結算對不上、買家總覽對不上，或是回應裡出現不公開欄位時，程式結束且不改 `data/public.json`。先前已公開、但這次清單裡消失的團也不會被刪掉。
 
-GitHub Actions 的 `GITHUB_TOKEN` 推上去的提交，不一定會再觸發 Pages 的自動建置。所以內容有變時，工作流程會再呼叫 Pages 重建 API。那個步驟還沒在這個倉庫實際成功過；合併後第一次綠燈才算數。
-
-## 要啟用時要做的事
-
-1. 合併前再看一次允許清單，確認 `01a1bb0ec8207669a9dcc46e4ed9fb32` 要留。
-2. 在這個倉庫的 Actions secret 新增 `ORDERS_API_TOKEN`。不要寫進前端、不要寫進倉庫、不要貼到日誌。
-3. 合併到 `main` 之後，到 Actions 手動跑 `sync-orders`。secret 還沒設定時，這一 job 會失敗，而且不會改資料。
-4. 看該次執行是 `updated` 還是 `noop`，以及 Pages 重建步驟的結果。每天的排程要等這次手動成功之後才算啟用。
-
-本機可以在倉庫根目錄執行：
-
-```bash
-pip install -r requirements.txt
-ORDERS_API_TOKEN='權杖只放在這個環境' python3 -m sync.sync_orders --dry-run
-ORDERS_API_TOKEN='權杖只放在這個環境' python3 -m sync.sync_orders
-```
-
-程式只讀環境變數，不讀 `~/.config/money-orders/token`。
-
-`--dry-run` 會讀來源並檢查，不寫檔。正式寫入成功時，終端機印出 `updated`；內容相同印出 `noop`。
+內容有變化時，工作流程會提交公開檔並請求 GitHub Pages 重建。成功時印出 `updated`；內容相同印出 `noop`。來源拒絕授權、連線失敗或結算對不上時，不改上一筆公開資料。
 
 ## 若要改由審查過的投影做一次匯入
 

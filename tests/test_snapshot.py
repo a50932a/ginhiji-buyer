@@ -1,4 +1,4 @@
-"""確認目前提交的公開快照仍是既有範圍，沒有把新團的金額寫進去。"""
+"""確認公開範圍仍是允許清單，而且工作流程沒有排程。"""
 
 from __future__ import annotations
 
@@ -31,30 +31,23 @@ BANNED_KEYS = {
 }
 
 
-def test_published_snapshot_keeps_the_existing_scope():
+def test_published_snapshot_matches_the_allowlist():
     public = json.loads((ROOT / "data" / "public.json").read_text(encoding="utf-8"))
-    validate_public(public)
-    assert public["fetchedAt"] == "2026-11-04 22:41"
-    assert len(public["gbs"]) == 139
-    assert len(public["buyers"]) == 39
-    assert len(public["billing"]["items"]) == 14
-    assert sum(len(order["it"]) for group in public["gbs"] for order in group["o"]) == 790
-    assert NEW_GROUP not in {group["id"] for group in public["gbs"]}
-    assert _banned_keys(public) == set()
-    dates = [group["dt"] for group in public["gbs"]]
-    assert min(dates) == "2026-02-01"
-    assert max(dates) == "2026-11-01"
-
-
-def test_allowlist_is_the_snapshot_plus_one_reviewed_id():
     allow = json.loads((ROOT / "sync" / "allowlist.json").read_text(encoding="utf-8"))
-    public = json.loads((ROOT / "data" / "public.json").read_text(encoding="utf-8"))
-    published = [group["id"] for group in public["gbs"]]
-    assert allow["include"][0] == NEW_GROUP
-    assert allow["include"][1:] == published
+    validate_public(public)
+    published = {group["id"] for group in public["gbs"]}
+    assert published == set(allow["include"])
+    assert len(published) == 140
+    assert NEW_GROUP in published
+    group = next(item for item in public["gbs"] if item["id"] == NEW_GROUP)
+    charges = {order["b"]: order["charge"] for order in group["o"]}
+    assert charges["草凡"] == 800
+    assert charges["阿魯"] == 724
+    assert group["st"] == "closed"
+    assert {item[3] for order in group["o"] for item in order["it"]} == {"ordered"}
+    assert _banned_keys(public) == set()
     billing = json.loads((ROOT / "sync" / "billing_groups.json").read_text(encoding="utf-8"))
-    assert set(billing["include"]) <= set(published)
-    assert len(billing["include"]) == 14
+    assert set(billing["include"]) <= published
     assert NEW_GROUP not in billing["include"]
 
 
@@ -64,6 +57,12 @@ def test_page_loads_the_projection_instead_of_embedding_it():
     assert "const DATA = {" not in html
     assert "costRate" not in html
     assert "ORDERS_API_TOKEN" not in html
+    assert "每天" not in html
+    assert "每日" not in html
+    workflow = (ROOT / ".github" / "workflows" / "sync-orders.yml").read_text(encoding="utf-8")
+    assert "workflow_dispatch" in workflow
+    assert "schedule" not in workflow
+    assert "cron" not in workflow
 
 
 def _banned_keys(value, found=None):
