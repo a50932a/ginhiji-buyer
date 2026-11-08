@@ -133,6 +133,46 @@ def test_existing_image_is_not_reencoded_when_etag_matches(tmp_path: Path):
     assert (root / "img" / "l" / "abc123def456.jpg").read_bytes() == payload
 
 
+def test_existing_image_stays_when_image_check_is_rejected(tmp_path: Path):
+    groups, items, buyers = bundle()
+    groups[GROUP_A]["groupBuy"]["image"] = "/api/images/abc123def456"
+    source = FakeSource(groups, items, buyers)
+
+    def rejected(_url):
+        raise AuthError("來源拒絕授權")
+
+    source.stat_image = rejected
+    root = site_root(tmp_path, [GROUP_A])
+    raw = BytesIO()
+    Image.new("RGB", (10, 10), "blue").save(raw, format="JPEG")
+    payload = raw.getvalue()
+    for folder in ("l", "t"):
+        path = root / "img" / folder / "abc123def456.jpg"
+        path.parent.mkdir(parents=True)
+        path.write_bytes(payload)
+    assert run_sync(root, source, dry_run=False) == "updated"
+    assert source.image_calls == []
+    assert (root / "img" / "l" / "abc123def456.jpg").read_bytes() == payload
+    public = json.loads((root / "data" / "public.json").read_text(encoding="utf-8"))
+    assert public["gbs"][0]["img"] == "abc123def456"
+
+
+def test_missing_image_auth_failure_writes_nothing(tmp_path: Path):
+    groups, items, buyers = bundle()
+    groups[GROUP_A]["orders"][0]["items"][0]["image"] = "/api/images/abc123def456"
+    items[GROUP_A][0]["image"] = "/api/images/abc123def456"
+    source = FakeSource(groups, items, buyers)
+
+    def rejected(_url):
+        raise AuthError("來源拒絕授權")
+
+    source.get_image = rejected
+    root = site_root(tmp_path, [GROUP_A])
+    with pytest.raises(AuthError):
+        run_sync(root, source, dry_run=False)
+    assert not (root / "data" / "public.json").exists()
+
+
 def test_projection_file_rejects_cost_and_profit(tmp_path: Path):
     path = tmp_path / "reviewed.json"
     path.write_text(json.dumps({"groups": [{"groupBuy": {"costRate": "0.2"}}], "items": {}, "buyers": []}), encoding="utf-8")

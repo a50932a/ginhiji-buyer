@@ -305,7 +305,15 @@ def _prepare_images(root: Path, source, images: dict[str, str]):
                     updated[key] = {"etag": None, "sha256": local_sha}
                 continue
         except MissingImage:
-            if have_files:
+            if have_files and not needs_download:
+                if local_sha:
+                    updated[key] = {"etag": cached_etag, "sha256": local_sha}
+                continue
+            raise
+        except SyncError:
+            # 既有圖片的 HEAD 被拒或暫時失敗時，保留檔案，避免整次公開更新中止。
+            # 缺圖或必須重抓時仍往下走，失敗就中止且不寫公開檔。
+            if have_files and not needs_download:
                 if local_sha:
                     updated[key] = {"etag": cached_etag, "sha256": local_sha}
                 continue
