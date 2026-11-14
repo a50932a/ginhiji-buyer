@@ -84,6 +84,56 @@ def _normalize_billing_buyers(names) -> tuple[str, ...] | None:
     return tuple(cleaned)
 
 
+def parse_offset_notes(raw) -> frozenset[str]:
+    if raw is None:
+        return frozenset()
+    if not isinstance(raw, (list, tuple, set, frozenset)):
+        raise SchemaError("抵扣備註清單格式不正確")
+    notes: list[str] = []
+    seen: set[str] = set()
+    for note in raw:
+        if not isinstance(note, str) or not note or note != note.strip():
+            raise SchemaError("抵扣備註不正確")
+        if note in seen:
+            raise SchemaError("抵扣備註重複")
+        seen.add(note)
+        notes.append(note)
+    return frozenset(notes)
+
+
+def parse_buyer_aliases(raw) -> dict[str, str]:
+    if raw is None:
+        return {}
+    if not isinstance(raw, dict):
+        raise SchemaError("買家別名格式不正確")
+    aliases: dict[str, str] = {}
+    for source, target in raw.items():
+        if not isinstance(source, str) or not source or source != source.strip():
+            raise SchemaError("買家別名不正確")
+        if not isinstance(target, str) or not target or target != target.strip():
+            raise SchemaError("買家別名不正確")
+        if source == target:
+            raise SchemaError("買家別名不能指向自己")
+        aliases[source] = target
+    flat: dict[str, str] = {}
+    for source in aliases:
+        current = source
+        seen: set[str] = set()
+        while current in aliases:
+            if current in seen:
+                raise SchemaError("買家別名有循環")
+            seen.add(current)
+            current = aliases[current]
+        flat[source] = current
+    return flat
+
+
+def canonical_buyer(name: str, aliases: dict[str, str] | None = None) -> str:
+    if not aliases:
+        return name
+    return aliases.get(name, name)
+
+
 def project_publication(
     details: list[dict],
     items_by_group: dict[str, list[dict]],
@@ -93,8 +143,12 @@ def project_publication(
     billing_ids: list[str],
     fetched_at: str,
     empty_text: str,
+    buyer_aliases: dict[str, str] | None = None,
+    offset_notes=None,
 ) -> tuple[dict, dict[str, str]]:
-    offsets = _offset_index(previous)
+    aliases = parse_buyer_aliases(buyer_aliases)
+    notes = parse_offset_notes(offset_notes)
+    offsets = _offset_index(previous, notes)
     images: dict[str, str] = {}
     groups = []
     for detail in details:
@@ -102,9 +156,9 @@ def project_publication(
         groups.append(group)
     groups.sort(key=lambda group: group["id"])
     groups.sort(key=lambda group: group["dt"], reverse=True)
-    buyers = _build_buyers(groups)
-    _assert_summary(buyers, summary_buyers)
-    billing = _build_billing(groups, parse_billing_include(list(billing_ids)), empty_text)
+    buyers = _build_buyers(groups, aliases)
+    _assert_summary(buyers, summary_buyers, aliases)
+    billing = _build_billing(groups, parse_billing_include(list(billing_ids)), empty_text, aliases)
     public = {
         "fetchedAt": fetched_at,
         "gbs": groups,
@@ -353,7 +407,8 @@ def _assert_items(orders: list[dict], listed: list[dict], group_id: str) -> None
             raise SchemaError("品項圖片與 /items 不一致")
 
 
-def _offset_index(previous: dict | None) -> Callable:
+def _offset_index(previous: dict | None, offset_notes: frozenset[str] | None = None) -> Callable:
+    notes = offset_notes or frozenset()
     flags: dict[tuple, set[int]] = {}
     for group in (previous or {}).get("gbs") or []:
         for order in group.get("o") or []:
@@ -365,24 +420,25 @@ def _offset_index(previous: dict | None) -> Callable:
 
     def lookup(group_id: str, buyer: str, amount, paid_at: str, note: str) -> int:
         found = flags.get((group_id, buyer, norm_amount(amount), paid_at, note))
-        if found == {1}:
+        if found == {1} or note in notes:
             return 1
         return 0
 
     return lookup
 
 
-def _build_buyers(groups: list[dict]) -> list[dict]:
+def _build_buyers(groups: list[dict], aliases: dict[str, str] | None = None) -> list[dict]:
     chronological = sorted(groups, key=lambda group: (group["dt"], group["id"]))
     aggregated: dict[str, dict] = {}
     for group in chronological:
         for order in group["o"]:
             if order["self"]:
                 continue
+            display = canonical_buyer(order["b"], aliases)
             buyer = aggregated.setdefault(
-                order["b"],
+                display,
                 {
-                    "n": order["b"],
+                    "n": display,
                     "gc": 0,
                     "q": 0,
                     "charge": 0,
@@ -407,32 +463,47 @@ def _build_buyers(groups: list[dict]) -> list[dict]:
     return [aggregated[name] for name in sorted(aggregated)]
 
 
-def _assert_summary(buyers: list[dict], summary_buyers: list[dict]) -> None:
+def _assert_summary(
+    buyers: list[dict],
+    summary_buyers: list[dict],
+    aliases: dict[str, str] | None = None,
+) -> None:
     calculated = {buyer["n"]: buyer for buyer in buyers}
-    seen = set()
+    folded: dict[str, dict[str, int]] = {}
     for row in summary_buyers:
         if row.get("isSelfOnly") is True:
             continue
         try:
-            name = str(row["name"])
+            name = canonical_buyer(str(row["name"]), aliases)
             charge = source_int(row["charge"], "買家總覽應收")
             paid = source_int(row["paidSum"], "買家總覽已收")
             remaining = source_int(row["remaining"], "買家總覽未收")
         except (KeyError, TypeError):
             raise SchemaError("買家總覽格式無法辨識") from None
+        totals = folded.setdefault(name, {"charge": 0, "paid": 0, "remaining": 0})
+        totals["charge"] += charge
+        totals["paid"] += paid
+        totals["remaining"] += remaining
+    seen = set()
+    for name, totals in folded.items():
         buyer = calculated.get(name)
         if buyer is None:
-            if charge == 0 and paid == 0 and remaining == 0:
+            if totals["charge"] == 0 and totals["paid"] == 0 and totals["remaining"] == 0:
                 continue
             raise SchemaError("買家總覽含有這次公開範圍以外的應收")
-        if buyer["charge"] != charge or buyer["paid"] != paid or buyer["rem"] != remaining:
+        if buyer["charge"] != totals["charge"] or buyer["paid"] != totals["paid"] or buyer["rem"] != totals["remaining"]:
             raise SchemaError("買家總覽與來源結算整數不一致")
         seen.add(name)
     if set(calculated) - seen:
         raise SchemaError("買家總覽少了已投影的買家")
 
 
-def _build_billing(groups: list[dict], billing_entries: list[BillingEntry], empty_text: str) -> dict:
+def _build_billing(
+    groups: list[dict],
+    billing_entries: list[BillingEntry],
+    empty_text: str,
+    aliases: dict[str, str] | None = None,
+) -> dict:
     by_id = {group["id"]: group for group in groups}
     items = []
     buyers: dict[str, dict] = {}
@@ -450,7 +521,8 @@ def _build_billing(groups: list[dict], billing_entries: list[BillingEntry], empt
         for order in selected:
             if order["rem"] <= 0:
                 continue
-            buyer = buyers.setdefault(order["b"], {"name": order["b"], "total": 0, "items": []})
+            display = canonical_buyer(order["b"], aliases)
+            buyer = buyers.setdefault(display, {"name": display, "total": 0, "items": []})
             buyer["total"] += order["rem"]
             buyer["items"].append({"name": group["n"], "amount": order["rem"], "note": ""})
     ordered = sorted(buyers.values(), key=lambda buyer: (-buyer["total"], buyer["name"]))

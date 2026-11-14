@@ -19,7 +19,7 @@ from zoneinfo import ZoneInfo
 from sync.client import OrdersClient
 from sync.errors import AuthError, MissingImage, MissingToken, SchemaError, SourceError, SyncError
 from sync.images import jpeg_variants, sha256_bytes
-from sync.project import content_signature, parse_billing_include, project_publication, validate_public
+from sync.project import content_signature, parse_billing_include, parse_buyer_aliases, parse_offset_notes, project_publication, validate_public
 
 _ID = re.compile(r"^[0-9a-f]{32}$")
 _TAIPEI = ZoneInfo("Asia/Taipei")
@@ -70,6 +70,8 @@ def run_sync(root: Path, source, *, now: datetime | None = None, dry_run: bool =
     if not set(billing_ids) <= set(allowlist):
         raise SchemaError("請款預告含有未允許的團")
     empty_text = str(billing_file.get("empty") or "月中暫無款項請款")
+    buyer_aliases = load_buyer_aliases(root / "sync" / "buyer_aliases.json")
+    offset_notes = load_offset_notes(root / "sync" / "offset_notes.json")
     previous = _read_public(root / "data" / "public.json")
     previous_ids = {group["id"] for group in previous["gbs"]} if previous else set()
 
@@ -113,6 +115,8 @@ def run_sync(root: Path, source, *, now: datetime | None = None, dry_run: bool =
         billing_ids=billing_entries,
         fetched_at=(previous or {}).get("fetchedAt") or fetched_at,
         empty_text=empty_text,
+        buyer_aliases=buyer_aliases,
+        offset_notes=offset_notes,
     )
     if content_signature(public) != content_signature(previous):
         public["fetchedAt"] = fetched_at
@@ -128,6 +132,32 @@ def run_sync(root: Path, source, *, now: datetime | None = None, dry_run: bool =
         return "dry-run"
     _commit(root, public if json_changed else None, staged, cache if cache_changed else None)
     return "updated"
+
+
+def load_optional_json(path: Path) -> dict | None:
+    if not path.exists():
+        return None
+    try:
+        payload = json.loads(path.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError):
+        raise SchemaError(f"無法讀取 {path.name}") from None
+    if not isinstance(payload, dict):
+        raise SchemaError(f"{path.name} 格式不正確")
+    return payload
+
+
+def load_buyer_aliases(path: Path) -> dict[str, str]:
+    payload = load_optional_json(path)
+    if payload is None:
+        return {}
+    return parse_buyer_aliases(payload.get("aliases"))
+
+
+def load_offset_notes(path: Path) -> frozenset[str]:
+    payload = load_optional_json(path)
+    if payload is None:
+        return frozenset()
+    return parse_offset_notes(payload.get("notes"))
 
 
 def load_billing_file(path: Path):
