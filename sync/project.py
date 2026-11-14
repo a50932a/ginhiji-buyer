@@ -7,6 +7,7 @@
 from __future__ import annotations
 
 import re
+from dataclasses import dataclass
 from typing import Callable
 from urllib.parse import urlsplit
 
@@ -29,6 +30,60 @@ BILLING_LINE_KEYS = {"name", "amount", "note"}
 BILLING_BUYER_KEYS = {"name", "total", "items"}
 
 
+@dataclass(frozen=True)
+class BillingEntry:
+    id: str
+    buyers: tuple[str, ...] | None = None
+
+
+def parse_billing_include(raw_ids, *, allow_empty: bool = True) -> list[BillingEntry]:
+    if not isinstance(raw_ids, list):
+        raise SchemaError("請款預告格式不正確")
+    if not raw_ids and not allow_empty:
+        raise SchemaError("請款預告沒有 id")
+    entries: list[BillingEntry] = []
+    seen: set[str] = set()
+    for raw in raw_ids:
+        group_id, buyers = _billing_entry_parts(raw)
+        if not isinstance(group_id, str) or not _ID.fullmatch(group_id):
+            raise SchemaError("請款預告有不正確的 id")
+        if group_id in seen:
+            raise SchemaError("請款預告有重複 id")
+        seen.add(group_id)
+        entries.append(BillingEntry(group_id, buyers))
+    return entries
+
+
+def _billing_entry_parts(raw) -> tuple[str, tuple[str, ...] | None]:
+    if isinstance(raw, BillingEntry):
+        return raw.id, _normalize_billing_buyers(raw.buyers)
+    if isinstance(raw, str):
+        return raw, None
+    if isinstance(raw, dict):
+        if set(raw) - {"id", "buyers"}:
+            raise SchemaError("請款預告有不支援的欄位")
+        buyers = None if "buyers" not in raw else _normalize_billing_buyers(raw["buyers"])
+        return raw.get("id"), buyers
+    raise SchemaError("請款預告格式不正確")
+
+
+def _normalize_billing_buyers(names) -> tuple[str, ...] | None:
+    if names is None:
+        return None
+    if not isinstance(names, (list, tuple)) or not names:
+        raise SchemaError("請款預告的買家清單不正確")
+    seen: set[str] = set()
+    cleaned: list[str] = []
+    for name in names:
+        if not isinstance(name, str) or not name or name != name.strip():
+            raise SchemaError("請款預告的買家名稱不正確")
+        if name in seen:
+            raise SchemaError("請款預告有重複的買家")
+        seen.add(name)
+        cleaned.append(name)
+    return tuple(cleaned)
+
+
 def project_publication(
     details: list[dict],
     items_by_group: dict[str, list[dict]],
@@ -49,7 +104,7 @@ def project_publication(
     groups.sort(key=lambda group: group["dt"], reverse=True)
     buyers = _build_buyers(groups)
     _assert_summary(buyers, summary_buyers)
-    billing = _build_billing(groups, billing_ids, empty_text)
+    billing = _build_billing(groups, parse_billing_include(list(billing_ids)), empty_text)
     public = {
         "fetchedAt": fetched_at,
         "gbs": groups,
@@ -377,22 +432,23 @@ def _assert_summary(buyers: list[dict], summary_buyers: list[dict]) -> None:
         raise SchemaError("買家總覽少了已投影的買家")
 
 
-def _build_billing(groups: list[dict], billing_ids: list[str], empty_text: str) -> dict:
+def _build_billing(groups: list[dict], billing_entries: list[BillingEntry], empty_text: str) -> dict:
     by_id = {group["id"]: group for group in groups}
     items = []
     buyers: dict[str, dict] = {}
-    for group_id in billing_ids:
-        group = by_id.get(group_id)
+    for entry in billing_entries:
+        group = by_id.get(entry.id)
         if group is None:
             raise SchemaError("請款預告的團不在這次公開投影")
-        remaining = sum(order["rem"] for order in group["o"] if not order["self"])
+        selected = _billing_orders(group, entry.buyers)
+        remaining = sum(order["rem"] for order in selected)
         if remaining <= 0:
             continue
-        charge = sum(order["charge"] for order in group["o"] if not order["self"])
-        paid = sum(order["paid"] for order in group["o"] if not order["self"])
-        items.append({"name": group["n"], "amount": remaining, "note": _billing_note(group, charge, paid)})
-        for order in group["o"]:
-            if order["self"] or order["rem"] <= 0:
+        charge = sum(order["charge"] for order in selected)
+        paid = sum(order["paid"] for order in selected)
+        items.append({"name": group["n"], "amount": remaining, "note": _billing_note(group, charge, paid, selected)})
+        for order in selected:
+            if order["rem"] <= 0:
                 continue
             buyer = buyers.setdefault(order["b"], {"name": order["b"], "total": 0, "items": []})
             buyer["total"] += order["rem"]
@@ -401,13 +457,23 @@ def _build_billing(groups: list[dict], billing_ids: list[str], empty_text: str) 
     return {"items": items, "empty": empty_text, "buyers": ordered}
 
 
-def _billing_note(group: dict, charge: int, paid: int) -> str:
+def _billing_orders(group: dict, allowed: tuple[str, ...] | None) -> list[dict]:
+    orders = group["o"]
+    if allowed is None:
+        return [order for order in orders if not order["self"]]
+    names = {order["b"] for order in orders}
+    missing = [name for name in allowed if name not in names]
+    if missing:
+        raise SchemaError("請款預告指定的買家不在團內")
+    allowed_set = set(allowed)
+    return [order for order in orders if order["b"] in allowed_set and not order["self"]]
+
+
+def _billing_note(group: dict, charge: int, paid: int, orders: list[dict]) -> str:
     if group["cur"] in ("TWD", "NTD"):
         return f"應收 {charge:,}，已收 {paid:,}" if paid else ""
     foreign = 0
-    for order in group["o"]:
-        if order["self"]:
-            continue
+    for order in orders:
         for item in order["it"]:
             foreign += item[1] * item[2]
     label = CURRENCY_LABEL.get(group["cur"], group["cur"])

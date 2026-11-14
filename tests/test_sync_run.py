@@ -46,7 +46,11 @@ class FakeSource:
     def buyers_summary(self, group_ids):
         assert set(group_ids) <= set(self.groups)
         assert GROUP_SECRET not in group_ids
-        names = {self.groups[group_id]["orders"][0]["buyerName"] for group_id in group_ids}
+        names = {
+            order["buyerName"]
+            for group_id in group_ids
+            for order in self.groups[group_id]["orders"]
+        }
         return [row for row in self.buyers if row["name"] in names]
 
     def stat_image(self, url):

@@ -5,7 +5,7 @@ from __future__ import annotations
 import json
 from pathlib import Path
 
-from sync.project import validate_public
+from sync.project import parse_billing_include, validate_public
 
 ROOT = Path(__file__).resolve().parents[1]
 NEW_GROUP = "01a1bb0ec8207669a9dcc46e4ed9fb32"
@@ -47,8 +47,13 @@ def test_published_snapshot_matches_the_allowlist():
     assert {item[3] for order in group["o"] for item in order["it"]} == {"ordered"}
     assert _banned_keys(public) == set()
     billing = json.loads((ROOT / "sync" / "billing_groups.json").read_text(encoding="utf-8"))
-    assert set(billing["include"]) <= published
-    assert NEW_GROUP not in billing["include"]
+    billing_entries = parse_billing_include(billing["include"], allow_empty=False)
+    billing_ids = [entry.id for entry in billing_entries]
+    assert set(billing_ids) <= published
+    assert NEW_GROUP not in billing_ids
+    banpresto = next(entry for entry in billing_entries if entry.id == "01a19329f6517208831dbe5a9077520e")
+    assert banpresto.buyers == ("Kris", "Mita")
+    assert sum(1 for entry in billing_entries if entry.buyers is not None) == 1
 
 
 def test_page_loads_the_projection_instead_of_embedding_it():
