@@ -19,7 +19,7 @@ from zoneinfo import ZoneInfo
 from sync.client import OrdersClient
 from sync.errors import AuthError, MissingImage, MissingToken, SchemaError, SourceError, SyncError
 from sync.images import jpeg_variants, sha256_bytes
-from sync.project import content_signature, project_publication, validate_public
+from sync.project import content_signature, parse_billing_include, project_publication, validate_public
 
 _ID = re.compile(r"^[0-9a-f]{32}$")
 _TAIPEI = ZoneInfo("Asia/Taipei")
@@ -65,10 +65,10 @@ def main(argv: list[str] | None = None) -> int:
 
 def run_sync(root: Path, source, *, now: datetime | None = None, dry_run: bool = False) -> str:
     allowlist = load_id_list(root / "sync" / "allowlist.json")
-    billing_ids = load_id_list(root / "sync" / "billing_groups.json")
+    billing_file, billing_entries = load_billing_file(root / "sync" / "billing_groups.json")
+    billing_ids = [entry.id for entry in billing_entries]
     if not set(billing_ids) <= set(allowlist):
         raise SchemaError("請款預告含有未允許的團")
-    billing_file = json.loads((root / "sync" / "billing_groups.json").read_text(encoding="utf-8"))
     empty_text = str(billing_file.get("empty") or "月中暫無款項請款")
     previous = _read_public(root / "data" / "public.json")
     previous_ids = {group["id"] for group in previous["gbs"]} if previous else set()
@@ -110,7 +110,7 @@ def run_sync(root: Path, source, *, now: datetime | None = None, dry_run: bool =
         items_by_group,
         summary,
         previous=previous,
-        billing_ids=billing_ids,
+        billing_ids=billing_entries,
         fetched_at=(previous or {}).get("fetchedAt") or fetched_at,
         empty_text=empty_text,
     )
@@ -128,6 +128,15 @@ def run_sync(root: Path, source, *, now: datetime | None = None, dry_run: bool =
         return "dry-run"
     _commit(root, public if json_changed else None, staged, cache if cache_changed else None)
     return "updated"
+
+
+def load_billing_file(path: Path):
+    try:
+        payload = json.loads(path.read_text(encoding="utf-8"))
+        raw_ids = payload["include"]
+    except (OSError, json.JSONDecodeError, KeyError, TypeError):
+        raise SchemaError(f"無法讀取 {path.name}") from None
+    return payload, parse_billing_include(raw_ids, allow_empty=False)
 
 
 def load_id_list(path: Path) -> list[str]:
