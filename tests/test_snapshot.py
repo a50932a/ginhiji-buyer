@@ -101,6 +101,20 @@ def test_page_loads_the_projection_instead_of_embedding_it():
     assert "const DATA = {" not in html
     assert "含抵扣" in html
     assert "o.pay.filter(p=>p[3])" in html
+    notice = (
+        "付款注意事項：",
+        "月初請款請於每月4日前付款。",
+        "月中請款請於每月17日前付款。",
+        "月底請款請於每月25日前付款。",
+    )
+    for line in notice:
+        assert line in html
+    static = html.split('<div id="billing"></div>', 1)[1].split("</section>", 1)[0]
+    for line in notice:
+        assert line in static
+    assert "bl-note" in static
+    public = json.loads((ROOT / "data" / "public.json").read_text(encoding="utf-8"))
+    assert "付款注意事項" not in json.dumps(public, ensure_ascii=False)
     assert "costRate" not in html
     assert "ORDERS_API_TOKEN" not in html
     assert "每天" not in html
