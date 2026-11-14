@@ -99,6 +99,8 @@ def test_page_loads_the_projection_instead_of_embedding_it():
     html = (ROOT / "index.html").read_text(encoding="utf-8")
     assert "data/public.json" in html
     assert "const DATA = {" not in html
+    assert "含抵扣" in html
+    assert "o.pay.filter(p=>p[3])" in html
     assert "costRate" not in html
     assert "ORDERS_API_TOKEN" not in html
     assert "每天" not in html

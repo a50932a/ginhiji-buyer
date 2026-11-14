@@ -613,11 +613,12 @@ function sortBy(arr, [k,dir]){
 function gbDetail(g){
   const orders = g.o.slice().sort((a,b)=>a.self-b.self || a.b.localeCompare(b.b,"zh-Hant")).map(o=>{
     const items = o.it.map(i=>`<div class="it ${i[5]?"hasth":""}">${thumb(i[5],"th",i[0])}<i style="background:${icol(i[3])}" title="${IST[i[3]]}"></i><div>${esc(i[0])} <b>×${i[2]}</b><div class="sm">${num(i[1])} ${esc(g.cur)}・${IST[i[3]]}${i[4]?`・寄件 ${esc(i[4])}`:""}</div></div></div>`).join("");
+    const off = sum(o.pay.filter(p=>p[3]), p=>p[0]);
     const pays = o.pay.map(p=>`<div class="pay ${p[3]?"off":""}">${p[3]?'<span class="tag off" style="background:transparent;padding:0;margin-right:4px">抵扣</span>':""}${p[1]}　<b>${nt(p[0])}</b>${p[2]?`<div>${esc(p[2])}</div>`:""}</div>`).join("");
     const money = o.self ? `<div class="money faint">團主自留</div>` : `<div class="money num">
         <div class="line total"><span>金額</span><span>${nt(o.charge)}</span></div>
         ${o.fc?`<div class="split">商品 ${nt(o.gc)}＋費用 ${nt(o.fc)}</div>`:""}
-        <div class="line"><span class="muted">已付</span><span>${nt(o.paid)}</span></div>
+        <div class="line"><span class="muted">已付</span><span>${nt(o.paid)}${off?`<span class="offc">（含抵扣 ${nt(off)}）</span>`:""}</span></div>
         <div class="line"><span class="muted">未付</span>${o.rem>0?`<span class="red"><b>${nt(o.rem)}</b></span>`:'<span class="green">✓ 已付清</span>'}</div>
         ${pays}</div>`;
     return `<div class="ord"><div class="who">${av(o.b)}<span>${esc(o.b)}</span>${o.self?'<span class="tag host">團主</span>':""}</div><div>${items}</div>${money}</div>`;
