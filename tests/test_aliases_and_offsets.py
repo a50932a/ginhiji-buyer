@@ -70,6 +70,30 @@ def test_offset_note_marks_deduction_even_if_previous_flag_was_zero():
     assert buyer["offs"] == [["測試團", "2026-11-08", 1365, "銀土T、銀土立牌"]]
 
 
+def test_order_paid_includes_deduction_payments():
+    group_id = "9" * 32
+    public, _images = _one_buyer_publication(
+        group_id,
+        "草凡",
+        [
+            {"amount": "200", "paidAt": "2026-11-01", "note": "轉帳"},
+            {"amount": "94", "paidAt": "2026-11-08", "note": "銀土T、銀土立牌"},
+        ],
+        charge="368",
+        paid="294",
+        remaining="74",
+        previous=None,
+        offset_notes=["銀土T、銀土立牌"],
+    )
+    order = public["gbs"][0]["o"][0]
+    assert order["paid"] == 294
+    assert order["rem"] == 74
+    assert sum(payment[0] for payment in order["pay"]) == 294
+    assert sum(payment[0] for payment in order["pay"] if payment[3]) == 94
+    assert public["buyers"][0]["paid"] == 294
+    assert public["buyers"][0]["off"] == 94
+
+
 def test_unlisted_notes_stay_regular_and_previous_flags_are_kept():
     group_id = "b" * 32
     previous = {
