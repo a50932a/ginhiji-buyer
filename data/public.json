@@ -1,5 +1,5 @@
 {
-  "fetchedAt": "2026-11-15 12:28",
+  "fetchedAt": "2026-11-15 12:35",
   "gbs": [
     {
       "id": "01a1d8a326e773d9be07c6063788e9dd",
@@ -4252,20 +4252,20 @@
           "rem": 0,
           "it": [
             [
-              "共鸣GONG 银魂魂蛋捏捏毛绒｜坂田银时A款",
-              59,
-              1,
-              "packing",
-              "",
-              "01a1489e0a7a714eafb83dbd7827ea7e"
-            ],
-            [
               "共鸣GONG 银魂魂蛋捏捏毛绒｜土方十四郎",
               59,
               1,
-              "packing",
+              "delivered",
               "",
               "01a1489e0a7a714eafb843dd1a0f0d0c"
+            ],
+            [
+              "共鸣GONG 银魂魂蛋捏捏毛绒｜坂田银时A款",
+              59,
+              1,
+              "delivered",
+              "",
+              "01a1489e0a7a714eafb83dbd7827ea7e"
             ]
           ],
           "pay": [
@@ -4316,20 +4316,20 @@
           "rem": 0,
           "it": [
             [
-              "共鸣GONG 银魂魂蛋捏捏毛绒｜土方十四郎",
-              59,
-              1,
-              "completed",
-              "",
-              "01a1489e0a7a714eafb843dd1a0f0d0c"
-            ],
-            [
               "共鸣GONG 银魂魂蛋捏捏毛绒｜坂田银时A款",
               59,
               1,
               "completed",
               "",
               "01a1489e0a7a714eafb83dbd7827ea7e"
+            ],
+            [
+              "共鸣GONG 银魂魂蛋捏捏毛绒｜土方十四郎",
+              59,
+              1,
+              "completed",
+              "",
+              "01a1489e0a7a714eafb843dd1a0f0d0c"
             ]
           ],
           "pay": [
@@ -6148,7 +6148,7 @@
       "n": "NO KISS, NO EXIT!",
       "src": "Melonbooks / フロマージュ",
       "cur": "JPY",
-      "st": "arrived",
+      "st": "settled",
       "dt": "2026-10-07",
       "img": "01a148893c7772e69265c0c73ed372f1",
       "url": "https://www.melonbooks.co.jp/fromagee/detail/detail.php?product_id=3886980",
@@ -6538,7 +6538,7 @@
       "n": "ご褒美なんかじゃねぇ! / 言わなきゃわかんねぇよ",
       "src": "Melonbooks / フロマージュ",
       "cur": "JPY",
-      "st": "arrived",
+      "st": "settled",
       "dt": "2026-09-30",
       "img": "01a1062cfbc2772da96ba85d5daa50fa",
       "url": "https://www.melonbooks.co.jp/fromagee/detail/detail.php?product_id=3875781",
@@ -6643,7 +6643,7 @@
               "ご褒美なんかじゃねぇ!",
               1100,
               1,
-              "delivered",
+              "completed",
               "",
               "01a10629a69e702ea3e00d8d5d75ec71"
             ],
@@ -6651,7 +6651,7 @@
               "言わなきゃわかんねぇよ",
               1571,
               1,
-              "delivered",
+              "completed",
               "",
               "01a10629a69e702ea3e0112a4bd44488"
             ]
@@ -6685,7 +6685,7 @@
               "ご褒美なんかじゃねぇ!",
               1100,
               1,
-              "delivered",
+              "completed",
               "",
               "01a10629ba7970c194d91ecb63e09fbe"
             ],
@@ -6693,7 +6693,7 @@
               "言わなきゃわかんねぇよ",
               1571,
               1,
-              "delivered",
+              "completed",
               "",
               "01a10629ba7970c194d920436bc6e4f6"
             ]
@@ -7137,7 +7137,7 @@
               "有邊壓克力書夾",
               8.93,
               1,
-              "packing",
+              "delivered",
               "",
               ""
             ]
@@ -7394,7 +7394,7 @@
               "烈日に焦がれて",
               1257,
               1,
-              "delivered",
+              "completed",
               "",
               "01a07318aa44714db429d2ef7b3f5ca0"
             ]
@@ -7492,7 +7492,7 @@
       "n": "噛み合ってない",
       "src": "Melonbooks / フロマージュ",
       "cur": "JPY",
-      "st": "arrived",
+      "st": "settled",
       "dt": "2026-08-25",
       "img": "01a07348f537736f8affae4086605330",
       "url": "https://www.melonbooks.co.jp/fromagee/detail/detail.php?product_id=3826648",
@@ -7552,7 +7552,7 @@
               "噛み合ってない",
               471,
               1,
-              "delivered",
+              "completed",
               "",
               "01a07348fc9772d88ac1c49a943b7272"
             ]
@@ -7580,7 +7580,7 @@
               "噛み合ってない",
               471,
               1,
-              "packing",
+              "completed",
               "",
               "01a07349089c7679a8072bea934b4ea8"
             ]
@@ -7888,7 +7888,7 @@
               "Blind spot!!",
               785,
               1,
-              "delivered",
+              "completed",
               "",
               "01a075ab643777bab7f2c3a7842612e9"
             ]
@@ -7993,7 +7993,7 @@
       "n": "絶賛ぜっさん中",
       "src": "Melonbooks / フロマージュ",
       "cur": "JPY",
-      "st": "arrived",
+      "st": "settled",
       "dt": "2026-08-22",
       "img": "01a02902144c70828022a5ad0ccbd55e",
       "url": "https://www.melonbooks.co.jp/fromagee/detail/detail.php?product_id=3825959",
@@ -8048,7 +8048,7 @@
               "絶賛ぜっさん中",
               1540,
               1,
-              "delivered",
+              "completed",
               "",
               "01a02900f2ed7609a8eb0d387c923a90"
             ]
@@ -9981,7 +9981,7 @@
               "描き下ろし 坂田銀時 動物との交流ver. ブロマイド3枚セット",
               495,
               1,
-              "delivered",
+              "completed",
               "",
               "01a073035da67124aff59a88bb060257"
             ],
@@ -9989,7 +9989,7 @@
               "描き下ろし 土方十四郎 動物との交流ver. ブロマイド3枚セット",
               495,
               1,
-              "delivered",
+              "completed",
               "",
               "01a073035da67124aff59d25adfeca5b"
             ],
@@ -9997,7 +9997,7 @@
               "描き下ろし 坂田銀時 動物との交流ver. BIGアクリルスタンド",
               1980,
               1,
-              "delivered",
+              "completed",
               "",
               "01a073035da67124aff5a14b59129bba"
             ],
@@ -10005,7 +10005,7 @@
               "描き下ろし 土方十四郎 動物との交流ver. BIGアクリルスタンド",
               1980,
               1,
-              "delivered",
+              "completed",
               "",
               "01a073035da67124aff5a79e8245b718"
             ]
@@ -10033,7 +10033,7 @@
               "万事屋 ちびキャラ 動物との交流ver. BIGシルエットTシャツ/ユニセックス（サイズ：XL）",
               4950,
               1,
-              "packing",
+              "delivered",
               "",
               "01a0730362ea764ebe9a78e95f98d659"
             ],
@@ -10041,7 +10041,7 @@
               "真選組 ちびキャラ 動物との交流ver. BIGシルエットTシャツ/ユニセックス（サイズ：XL）",
               4950,
               1,
-              "packing",
+              "delivered",
               "",
               "01a0730362ea764ebe9a768a96fb44e3"
             ]
@@ -10069,7 +10069,7 @@
               "描き下ろし 神楽 動物との交流ver. ブロマイド3枚セット",
               495,
               1,
-              "delivered",
+              "completed",
               "",
               "01a07303605d70b9838d750edd965457"
             ],
@@ -10077,7 +10077,7 @@
               "描き下ろし 沖田総悟 動物との交流ver. ブロマイド3枚セット",
               495,
               1,
-              "delivered",
+              "completed",
               "",
               "01a07303605d70b9838d6cac290412ba"
             ],
@@ -10093,7 +10093,7 @@
               "描き下ろし 神威 動物との交流ver. BIGアクリルスタンド",
               1980,
               1,
-              "delivered",
+              "completed",
               "",
               "01a07303605d70b9838d6343d4875f08"
             ],
@@ -10101,7 +10101,7 @@
               "描き下ろし 沖田総悟 動物との交流ver. BIGアクリルスタンド",
               1980,
               1,
-              "delivered",
+              "completed",
               "",
               "01a07303605d70b9838d64135e405383"
             ],
@@ -10109,7 +10109,7 @@
               "描き下ろし 神楽 動物との交流ver. BIGアクリルスタンド",
               1980,
               1,
-              "delivered",
+              "completed",
               "",
               "01a07303605d70b9838d694d9994ae54"
             ]
@@ -20486,7 +20486,7 @@
         ],
         [
           "NO KISS, NO EXIT!",
-          "arrived",
+          "settled",
           162,
           114
         ],
