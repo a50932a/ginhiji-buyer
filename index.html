@@ -350,6 +350,11 @@ footer{color:var(--faint);font-size:12px;padding:28px 0 40px;text-align:center}
       </div>
     </section>
 
+    <section class="panel billing">
+      <h2><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 10v4a1 1 0 0 0 1 1h3l6 4V5L7 9H4a1 1 0 0 0-1 1z"/><path d="M16.5 8.5a5 5 0 0 1 0 7"/><path d="M19 6a8.5 8.5 0 0 1 0 12"/></svg></span>月底請款預告</h2>
+      <div id="billingEnd"></div>
+    </section>
+
     <section class="panel notice">
       <h2><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 11v5M12 7.5v.5"/></svg></span>購買須知</h2>
       <div class="ngrid">
@@ -558,19 +563,23 @@ const S = {q:"", st:new Set(), month:"", src:"", todo:"", sort:["dt",-1], open:n
            ist:new Set(), iopen:true, isort:["dt",-1], bowe:false, bsort:["n",1], bmore:new Set(), omore:new Set(), tab:"gb"};
 
 // ---------- billing notice ----------
-(()=>{
-  const B = DATA.billing || {items:[]}, items = (B.items||[]).filter(x=>x && x.name), bys = (B.buyers||[]).filter(x=>x && x.name && (x.items||[]).length);
-  const empty = `<div class="bl-empty"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="m8 12 3 3 5-6"/></svg>${esc(B.empty||"月中暫無款項請款")}</div>`;
+function renderBilling(id, data, emptyDefault){
+  const el = document.getElementById(id);
+  const B = data || {items:[]}, items = (B.items||[]).filter(x=>x && x.name), bys = (B.buyers||[]).filter(x=>x && x.name && (x.items||[]).length);
+  const empty = `<div class="bl-empty"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="m8 12 3 3 5-6"/></svg>${esc(B.empty||emptyDefault)}</div>`;
   const rows = x=>`<div class="bl-row"><div class="nm">${esc(x.name)}${x.note?`<small>${esc(x.note)}</small>`:""}</div><div class="amt num">${nt(+x.amount||0)}</div></div>`;
   const groupView = items.length ? `<div class="bl-list">${items.map(rows).join("")}</div>${items.length>1?`<div class="bl-total">合計 <b class="num">${nt(sum(items,x=>+x.amount||0))}</b></div>`:""}` : "";
-  if(!bys.length){ $("#billing").innerHTML = groupView || empty; return; }
+  if(!bys.length){ el.innerHTML = groupView || empty; return; }
   const total = sum(bys,x=>+x.total||0);
-  $("#billing").innerHTML = `<div class="bl-sub"><span>共 ${bys.length} 位，點名字可展開品項</span><button type="button" id="blToggle">全部展開</button></div>
+  const toggleId = id + "Toggle";
+  el.innerHTML = `<div class="bl-sub"><span>共 ${bys.length} 位，點名字可展開品項</span><button type="button" id="${toggleId}">全部展開</button></div>
     <div class="bl-list">${bys.map(b=>`<details class="bl-buyer"><summary><div class="nm">${esc(b.name)}<small>${b.items.length} 筆</small></div><div class="amt num">${nt(+b.total||0)}</div></summary><div class="bl-lines">${b.items.map(x=>`<div class="bl-line"><div class="nm">${esc(x.name)}${x.note?`<small>${esc(x.note)}</small>`:""}</div><div class="amt num">${nt(+x.amount||0)}</div></div>`).join("")}</div></details>`).join("")}</div>
     <div class="bl-total">本次請款總計 <b class="num">${nt(total)}</b></div>
     ${groupView?`<details class="bl-more"><summary>依團購檢視</summary>${groupView}</details>`:""}`;
-  $("#blToggle").onclick = e=>{ const ds=[...document.querySelectorAll("#billing .bl-buyer")], open=ds.some(d=>!d.open); ds.forEach(d=>d.open=open); e.target.textContent = open?"全部收合":"全部展開"; };
-})();
+  $("#"+toggleId).onclick = e=>{ const ds=[...document.querySelectorAll("#"+id+" .bl-buyer")], open=ds.some(d=>!d.open); ds.forEach(d=>d.open=open); e.target.textContent = open?"全部收合":"全部展開"; };
+}
+renderBilling("billing", DATA.billing, "月中暫無款項請款");
+renderBilling("billingEnd", DATA.billingEnd, "月底暫無款項請款");
 
 // ---------- months ----------
 const months = [...new Set(DATA.gbs.map(g=>g.month))].sort();

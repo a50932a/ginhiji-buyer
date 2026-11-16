@@ -66,6 +66,21 @@ def test_published_snapshot_matches_the_allowlist():
     banpresto = next(entry for entry in billing_entries if entry.id == "01a19329f6517208831dbe5a9077520e")
     assert banpresto.buyers == ("Kris", "Mita")
     assert sum(1 for entry in billing_entries if entry.buyers is not None) == 1
+    end = json.loads((ROOT / "sync" / "billing_month_end.json").read_text(encoding="utf-8"))
+    end_entries = parse_billing_include(end["include"], allow_empty=False)
+    end_ids = [entry.id for entry in end_entries]
+    assert end["empty"] == "月底暫無款項請款"
+    assert end_ids == [
+        "01a16ed8cba1708aa66f2506ad1c8ca2",
+        "01a192e2ba2973d3a2169e49b1f7b5a6",
+        "01a193196d5b752d87a6d8ba3e6d874b",
+        "01a192996ec77608a91262c8086a0eef",
+    ]
+    assert set(end_ids) <= published
+    assert all(entry.buyers is None for entry in end_entries)
+    assert set(billing_ids).isdisjoint(end_ids)
+    assert "billingEnd" in public
+    assert set(public["billingEnd"]) == {"items", "empty", "buyers"}
     aliases = load_buyer_aliases(ROOT / "sync" / "buyer_aliases.json")
     assert aliases.get("苒") == "苒苒"
     notes = load_offset_notes(ROOT / "sync" / "offset_notes.json")
@@ -113,6 +128,12 @@ def test_page_loads_the_projection_instead_of_embedding_it():
     for line in notice:
         assert line in static
     assert "bl-note" in static
+    assert "近期請款預告" in html
+    assert "月底請款預告" in html
+    assert 'id="billingEnd"' in html
+    assert html.count("付款注意事項：") == 1
+    assert 'renderBilling("billingEnd", DATA.billingEnd, "月底暫無款項請款")' in html
+    assert 'renderBilling("billing", DATA.billing, "月中暫無款項請款")' in html
     public = json.loads((ROOT / "data" / "public.json").read_text(encoding="utf-8"))
     assert "付款注意事項" not in json.dumps(public, ensure_ascii=False)
     assert "costRate" not in html

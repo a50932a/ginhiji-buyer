@@ -21817,5 +21817,10 @@
     "items": [],
     "empty": "月中暫無款項請款",
     "buyers": []
+  },
+  "billingEnd": {
+    "items": [],
+    "empty": "月底暫無款項請款",
+    "buyers": []
   }
 }
