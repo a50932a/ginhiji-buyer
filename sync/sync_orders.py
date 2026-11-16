@@ -70,6 +70,16 @@ def run_sync(root: Path, source, *, now: datetime | None = None, dry_run: bool =
     if not set(billing_ids) <= set(allowlist):
         raise SchemaError("請款預告含有未允許的團")
     empty_text = str(billing_file.get("empty") or "月中暫無款項請款")
+    end_file, end_entries = load_billing_file(
+        root / "sync" / "billing_month_end.json",
+        required=False,
+        allow_empty=True,
+        default_empty="月底暫無款項請款",
+    )
+    end_ids = [entry.id for entry in end_entries]
+    if not set(end_ids) <= set(allowlist):
+        raise SchemaError("月底請款預告含有未允許的團")
+    empty_end_text = str(end_file.get("empty") or "月底暫無款項請款")
     buyer_aliases = load_buyer_aliases(root / "sync" / "buyer_aliases.json")
     offset_notes = load_offset_notes(root / "sync" / "offset_notes.json")
     previous = _read_public(root / "data" / "public.json")
@@ -117,6 +127,8 @@ def run_sync(root: Path, source, *, now: datetime | None = None, dry_run: bool =
         empty_text=empty_text,
         buyer_aliases=buyer_aliases,
         offset_notes=offset_notes,
+        billing_end_ids=end_entries,
+        empty_end_text=empty_end_text,
     )
     if content_signature(public) != content_signature(previous):
         public["fetchedAt"] = fetched_at
@@ -160,13 +172,23 @@ def load_offset_notes(path: Path) -> frozenset[str]:
     return parse_offset_notes(payload.get("notes"))
 
 
-def load_billing_file(path: Path):
+def load_billing_file(
+    path: Path,
+    *,
+    required: bool = True,
+    allow_empty: bool = False,
+    default_empty: str = "月中暫無款項請款",
+):
+    if not path.exists():
+        if required:
+            raise SchemaError(f"無法讀取 {path.name}")
+        return {"include": [], "empty": default_empty}, []
     try:
         payload = json.loads(path.read_text(encoding="utf-8"))
         raw_ids = payload["include"]
     except (OSError, json.JSONDecodeError, KeyError, TypeError):
         raise SchemaError(f"無法讀取 {path.name}") from None
-    return payload, parse_billing_include(raw_ids, allow_empty=False)
+    return payload, parse_billing_include(raw_ids, allow_empty=allow_empty)
 
 
 def load_id_list(path: Path) -> list[str]:
@@ -289,6 +311,11 @@ def _read_public(path: Path) -> dict | None:
         payload = json.loads(path.read_text(encoding="utf-8"))
     except (OSError, json.JSONDecodeError):
         raise SchemaError("現有公開資料無法讀取，已停止以免覆蓋") from None
+    if isinstance(payload, dict) and "billingEnd" not in payload:
+        payload = {
+            **payload,
+            "billingEnd": {"items": [], "empty": "月底暫無款項請款", "buyers": []},
+        }
     validate_public(payload)
     return payload
 

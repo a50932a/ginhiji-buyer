@@ -21,7 +21,7 @@ CURRENCY_LABEL = {"JPY": "日幣", "CNY": "人民幣", "TWD": "台幣", "NTD": "
 _ID = re.compile(r"^[0-9a-f]{32}$")
 _CURRENCY = re.compile(r"^[A-Z]{3,4}$")
 
-TOP_KEYS = {"fetchedAt", "gbs", "buyers", "billing"}
+TOP_KEYS = {"fetchedAt", "gbs", "buyers", "billing", "billingEnd"}
 GROUP_KEYS = {"id", "n", "src", "cur", "st", "dt", "img", "url", "rate", "fees", "o"}
 ORDER_KEYS = {"b", "self", "gc", "fc", "charge", "sv", "paid", "rem", "it", "pay"}
 BUYER_KEYS = {"n", "gc", "q", "charge", "paid", "rem", "off", "offs", "lines"}
@@ -145,6 +145,8 @@ def project_publication(
     empty_text: str,
     buyer_aliases: dict[str, str] | None = None,
     offset_notes=None,
+    billing_end_ids: list | None = None,
+    empty_end_text: str = "月底暫無款項請款",
 ) -> tuple[dict, dict[str, str]]:
     aliases = parse_buyer_aliases(buyer_aliases)
     notes = parse_offset_notes(offset_notes)
@@ -159,11 +161,18 @@ def project_publication(
     buyers = _build_buyers(groups, aliases)
     _assert_summary(buyers, summary_buyers, aliases)
     billing = _build_billing(groups, parse_billing_include(list(billing_ids)), empty_text, aliases)
+    billing_end = _build_billing(
+        groups,
+        parse_billing_include(list(billing_end_ids or [])),
+        empty_end_text,
+        aliases,
+    )
     public = {
         "fetchedAt": fetched_at,
         "gbs": groups,
         "buyers": buyers,
         "billing": billing,
+        "billingEnd": billing_end,
     }
     validate_public(public)
     return public, images
@@ -200,7 +209,11 @@ def validate_public(public: dict) -> None:
     for buyer in public["buyers"]:
         if set(buyer) != BUYER_KEYS:
             raise SchemaError("買家公開欄位與網站不一致")
-    billing = public["billing"]
+    _validate_billing(public["billing"])
+    _validate_billing(public["billingEnd"])
+
+
+def _validate_billing(billing: dict) -> None:
     if set(billing) != BILLING_KEYS:
         raise SchemaError("請款預告欄位與網站不一致")
     for line in billing["items"]:

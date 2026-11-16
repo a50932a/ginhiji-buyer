@@ -181,6 +181,86 @@ def test_sync_accepts_buyer_list_entries(tmp_path: Path):
     by_buyer = {row["name"]: row["total"] for row in public["billing"]["buyers"]}
     assert by_buyer["Kris"] == 11
     assert by_buyer["買家乙"] == 22
+    assert public["billingEnd"] == {"items": [], "empty": "月底暫無款項請款", "buyers": []}
+
+
+def test_load_billing_file_missing_optional_returns_empty(tmp_path: Path):
+    payload, entries = load_billing_file(
+        tmp_path / "billing_month_end.json",
+        required=False,
+        allow_empty=True,
+        default_empty="月底暫無款項請款",
+    )
+    assert payload == {"include": [], "empty": "月底暫無款項請款"}
+    assert entries == []
+
+
+def test_load_billing_file_missing_required_still_fails(tmp_path: Path):
+    with pytest.raises(SchemaError, match="無法讀取"):
+        load_billing_file(tmp_path / "billing_groups.json")
+
+
+def test_month_end_billing_is_independent_of_mid_month():
+    details, items, summary = _gin_group_bundle()
+    public, _images = project_publication(
+        details,
+        items,
+        summary,
+        previous=None,
+        billing_ids=[{"id": GROUP_FILTER, "buyers": ["Kris", "Mita"]}],
+        fetched_at="2026-11-16 16:00",
+        empty_text="月中暫無款項請款",
+        billing_end_ids=[GROUP_PLAIN],
+        empty_end_text="月底暫無款項請款",
+    )
+    mid = {row["name"]: row["total"] for row in public["billing"]["buyers"]}
+    assert mid == {"Kris": 604, "Mita": 604}
+    assert {row["name"] for row in public["billing"]["items"]} == {details[0]["groupBuy"]["name"]}
+    end = {row["name"]: row["total"] for row in public["billingEnd"]["buyers"]}
+    assert end == {"Kris": 100}
+    assert public["billingEnd"]["empty"] == "月底暫無款項請款"
+    assert public["billingEnd"]["items"][0]["name"] == details[1]["groupBuy"]["name"]
+    assert public["billingEnd"]["items"][0]["amount"] == 100
+    assert "billingEnd" in public
+    assert public["billing"]["empty"] == "月中暫無款項請款"
+
+
+def test_month_end_billing_defaults_to_empty_when_omitted():
+    details, items, summary = _gin_group_bundle()
+    public, _images = project_publication(
+        details,
+        items,
+        summary,
+        previous=None,
+        billing_ids=[GROUP_FILTER],
+        fetched_at="2026-11-16 16:00",
+        empty_text="月中暫無款項請款",
+    )
+    assert public["billing"]["buyers"]
+    assert public["billingEnd"] == {"items": [], "empty": "月底暫無款項請款", "buyers": []}
+
+
+def test_sync_writes_month_end_billing(tmp_path: Path):
+    from tests.test_sync_run import GROUP_A, GROUP_B, bundle
+
+    source = FakeSource(*bundle())
+    root = site_root(tmp_path, [GROUP_A, GROUP_B])
+    (root / "sync" / "billing_groups.json").write_text(
+        json.dumps({"include": [GROUP_A], "empty": "月中暫無款項請款"}),
+        encoding="utf-8",
+    )
+    (root / "sync" / "billing_month_end.json").write_text(
+        json.dumps({"include": [GROUP_B], "empty": "月底暫無款項請款"}),
+        encoding="utf-8",
+    )
+    assert run_sync(root, source, dry_run=False) == "updated"
+    public = json.loads((root / "data" / "public.json").read_text(encoding="utf-8"))
+    mid = {row["name"]: row["total"] for row in public["billing"]["buyers"]}
+    end = {row["name"]: row["total"] for row in public["billingEnd"]["buyers"]}
+    assert mid == {"買家甲": 11}
+    assert end == {"買家乙": 22}
+    assert public["billing"]["empty"] == "月中暫無款項請款"
+    assert public["billingEnd"]["empty"] == "月底暫無款項請款"
 
 
 def _gin_group_bundle():
