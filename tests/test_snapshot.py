@@ -128,9 +128,18 @@ def test_page_loads_the_projection_instead_of_embedding_it():
     for line in notice:
         assert line in static
     assert "bl-note" in static
-    assert "近期請款預告" in html
-    assert "月底請款預告" in html
-    assert 'id="billingEnd"' in html
+    assert html.count('class="panel billing"') == 1
+    section = html.split('<section class="panel billing">', 1)[1].split("</section>", 1)[0]
+    assert "近期請款預告" in section
+    assert "<h3>月中請款</h3>" in section
+    assert "<h3>月底請款</h3>" in section
+    assert 'id="billing"' in section
+    assert 'id="billingEnd"' in section
+    assert "bl-note" in section
+    assert section.index("<h3>月中請款</h3>") < section.index('id="billing"')
+    assert section.index('id="billing"') < section.index("<h3>月底請款</h3>")
+    assert section.index('id="billingEnd"') < section.index("付款注意事項：")
+    assert "月底請款預告" not in html
     assert html.count("付款注意事項：") == 1
     assert 'renderBilling("billingEnd", DATA.billingEnd, "月底暫無款項請款")' in html
     assert 'renderBilling("billing", DATA.billing, "月中暫無款項請款")' in html

@@ -95,6 +95,8 @@ button,select,input{font:inherit;color:inherit}
 .bl-more{margin-top:12px}.bl-more>summary{cursor:pointer;color:var(--sub);font-size:13px}.bl-more .bl-list{margin-top:8px}
 .bl-empty{display:flex;align-items:center;gap:10px;background:var(--surface-2);border-radius:12px;padding:14px 16px;color:var(--sub);font-size:14px}
 .bl-empty svg{width:20px;height:20px;color:var(--green);flex:none}
+.bl-part + .bl-part{margin-top:16px;padding-top:16px;border-top:1px dashed rgba(0,0,0,.1)}
+.bl-part h3{margin:0 0 10px;font-size:13.5px;font-weight:700;color:var(--ink)}
 .bl-note{margin-top:14px;background:var(--surface-2);border-radius:12px;padding:14px 16px}
 .bl-note h3{margin:0 0 6px;font-size:13px;font-weight:700;color:var(--ink)}
 .bl-note p{margin:0;font-size:13.5px;line-height:1.75;color:var(--sub)}
@@ -341,18 +343,20 @@ footer{color:var(--faint);font-size:12px;padding:28px 0 40px;text-align:center}
 
     <section class="panel billing">
       <h2><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 10v4a1 1 0 0 0 1 1h3l6 4V5L7 9H4a1 1 0 0 0-1 1z"/><path d="M16.5 8.5a5 5 0 0 1 0 7"/><path d="M19 6a8.5 8.5 0 0 1 0 12"/></svg></span>近期請款預告</h2>
-      <div id="billing"></div>
+      <div class="bl-part">
+        <h3>月中請款</h3>
+        <div id="billing"></div>
+      </div>
+      <div class="bl-part">
+        <h3>月底請款</h3>
+        <div id="billingEnd"></div>
+      </div>
       <div class="bl-note">
         <h3>付款注意事項：</h3>
         <p>月初請款請於每月4日前付款。</p>
         <p>月中請款請於每月17日前付款。</p>
         <p>月底請款請於每月25日前付款。</p>
       </div>
-    </section>
-
-    <section class="panel billing">
-      <h2><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 10v4a1 1 0 0 0 1 1h3l6 4V5L7 9H4a1 1 0 0 0-1 1z"/><path d="M16.5 8.5a5 5 0 0 1 0 7"/><path d="M19 6a8.5 8.5 0 0 1 0 12"/></svg></span>月底請款預告</h2>
-      <div id="billingEnd"></div>
     </section>
 
     <section class="panel notice">
