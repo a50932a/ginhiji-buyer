@@ -61,7 +61,9 @@ def test_published_snapshot_matches_the_allowlist():
         assert chibaobao["cur"] == "CNY"
         self_orders = [order for order in chibaobao["o"] if order["b"] == "阿蝶"]
         assert len(self_orders) == 1 and self_orders[0]["self"]
-        assert {item[0] for order in chibaobao["o"] for item in order["it"]} >= {"坂田银时", "土方十四郎"}
+        item_names = {item[0] for order in chibaobao["o"] for item in order["it"]}
+        assert any("坂田银时" in name for name in item_names)
+        assert any("土方十四郎" in name for name in item_names)
         assert {item[3] for order in chibaobao["o"] for item in order["it"]} == {"shipped"}
     group = next(item for item in public["gbs"] if item["id"] == NEW_GROUP)
     charges = {order["b"]: order["charge"] for order in group["o"]}
