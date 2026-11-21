@@ -1,5 +1,5 @@
 {
-  "fetchedAt": "2026-11-21 16:00",
+  "fetchedAt": "2026-11-21 16:51",
   "gbs": [
     {
       "id": "01a1fc9c2c6277909ddb902913e68fc5",
@@ -1997,7 +1997,7 @@
       "n": "Over frow",
       "src": "Melonbooks / フロマージュ",
       "cur": "JPY",
-      "st": "closed",
+      "st": "arrived",
       "dt": "2026-10-26",
       "img": "01a1770d46c7713a993efac8e3ff400a",
       "url": "https://www.melonbooks.co.jp/fromagee/detail/detail.php?product_id=3920911",
@@ -3532,7 +3532,7 @@
       "n": "Present Box",
       "src": "Melonbooks / フロマージュ",
       "cur": "JPY",
-      "st": "closed",
+      "st": "arrived",
       "dt": "2026-10-22",
       "img": "01a1672db1e174799e8e620ec50df54b",
       "url": "https://www.melonbooks.co.jp/fromagee/detail/detail.php?product_id=3916719",
@@ -3741,7 +3741,7 @@
       "n": "Present Box（123254588）",
       "src": "Melonbooks / フロマージュ",
       "cur": "JPY",
-      "st": "closed",
+      "st": "arrived",
       "dt": "2026-10-22",
       "img": "01a16730b0bf7089985fbe2d1683a718",
       "url": "https://www.melonbooks.co.jp/fromagee/detail/detail.php?product_id=3916719",
@@ -4062,7 +4062,7 @@
       "n": "Melonbooks 2026-10-18 現貨合單（123239333）",
       "src": "Melonbooks Fromagee",
       "cur": "JPY",
-      "st": "settled",
+      "st": "arrived",
       "dt": "2026-10-18",
       "img": "01a16e6f4b1076899fd6e03dd802d953",
       "url": "https://www.melonbooks.co.jp/fromagee/detail/detail.php?product_id=3825959",
@@ -20515,7 +20515,7 @@
         ],
         [
           "Present Box",
-          "closed",
+          "arrived",
           200,
           200
         ],
@@ -20732,7 +20732,7 @@
         ],
         [
           "Present Box",
-          "closed",
+          "arrived",
           200,
           200
         ],
@@ -20939,7 +20939,7 @@
         ],
         [
           "Present Box",
-          "closed",
+          "arrived",
           400,
           400
         ],
@@ -20981,7 +20981,7 @@
       "lines": [
         [
           "Present Box（123254588）",
-          "closed",
+          "arrived",
           223,
           223
         ],
@@ -21099,7 +21099,7 @@
         ],
         [
           "Present Box（123254588）",
-          "closed",
+          "arrived",
           223,
           223
         ],
@@ -21190,7 +21190,7 @@
         ],
         [
           "Present Box",
-          "closed",
+          "arrived",
           200,
           200
         ],
@@ -21287,7 +21287,7 @@
         ],
         [
           "Present Box（123254588）",
-          "closed",
+          "arrived",
           223,
           223
         ]
@@ -21311,7 +21311,7 @@
         ],
         [
           "Present Box（123254588）",
-          "closed",
+          "arrived",
           223,
           223
         ],
@@ -21534,7 +21534,7 @@
         ],
         [
           "Present Box",
-          "closed",
+          "arrived",
           200,
           200
         ],
@@ -21593,7 +21593,7 @@
         ],
         [
           "Present Box",
-          "closed",
+          "arrived",
           200,
           200
         ],
@@ -21714,7 +21714,7 @@
         ],
         [
           "Present Box",
-          "closed",
+          "arrived",
           200,
           200
         ],
@@ -21857,7 +21857,7 @@
         ],
         [
           "Present Box",
-          "closed",
+          "arrived",
           200,
           200
         ],
@@ -21928,7 +21928,7 @@
       "lines": [
         [
           "Present Box（123254588）",
-          "closed",
+          "arrived",
           223,
           223
         ],
@@ -21985,6 +21985,11 @@
         "name": "【包邮出】银土同人本《H·0505》合志",
         "amount": 322,
         "note": "人民幣 ¥95.57・應收 516，已收 194"
+      },
+      {
+        "name": "坂本辰馬色紙",
+        "amount": 50,
+        "note": ""
       }
     ],
     "empty": "月底暫無款項請款",
@@ -22122,6 +22127,22 @@
         ]
       },
       {
+        "name": "苦骸",
+        "total": 500,
+        "items": [
+          {
+            "name": "《G·1010》银土合志",
+            "amount": 450,
+            "note": ""
+          },
+          {
+            "name": "坂本辰馬色紙",
+            "amount": 50,
+            "note": ""
+          }
+        ]
+      },
+      {
         "name": "いさぎ",
         "total": 450,
         "items": [
@@ -22145,17 +22166,6 @@
       },
       {
         "name": "液體",
-        "total": 450,
-        "items": [
-          {
-            "name": "《G·1010》银土合志",
-            "amount": 450,
-            "note": ""
-          }
-        ]
-      },
-      {
-        "name": "苦骸",
         "total": 450,
         "items": [
           {
