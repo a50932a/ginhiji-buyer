@@ -289,6 +289,63 @@ def test_item_status_mismatch_aborts():
         )
 
 
+def test_source_nt_currency_is_normalized_to_twd():
+    group_id = "e" * 32
+
+    def publication(currency):
+        detail = {
+            "groupBuy": {**base_group(group_id), "currency": currency, "chargeRate": None},
+            "orders": [
+                {
+                    "id": "order-1",
+                    "buyerName": "買家己",
+                    "isSelf": False,
+                    "items": [item("item-1", "品項", "50", "")],
+                    "payments": [],
+                }
+            ],
+            "fees": [],
+            "settlement": {
+                "orders": [
+                    {
+                        "orderId": "order-1",
+                        "goodsCharge": "50",
+                        "feeCharge": "0",
+                        "charge": "50",
+                        "paidSum": "0",
+                        "remaining": "50",
+                    }
+                ]
+            },
+        }
+        listed = {group_id: [flat("item-1", group_id, "品項", "50", "")]}
+        summary = [{"name": "買家己", "charge": "50", "paidSum": "0", "remaining": "50"}]
+        public, _ = project_publication(
+            [detail],
+            listed,
+            summary,
+            previous=None,
+            billing_ids=[],
+            fetched_at="2026-11-21 15:00",
+            empty_text="沒有",
+        )
+        return public["gbs"][0]
+
+    for raw in ("NT", "nt", "NT$", " nt$ "):
+        group = publication(raw)
+        assert group["cur"] == "TWD"
+        assert group["rate"] is None
+
+    assert publication("TWD")["cur"] == "TWD"
+    assert publication("NTD")["cur"] == "NTD"
+    assert publication("JPY")["cur"] == "JPY"
+
+    for raw in ("N", "US", "NT$$", "USD$", "XXXXX"):
+        with pytest.raises(SchemaError, match="幣別格式不正確"):
+            publication(raw)
+
+
+
 def item(item_id, name, price, image):
     return {
         "id": item_id,
