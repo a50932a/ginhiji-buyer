@@ -236,6 +236,15 @@ def content_signature(public: dict | None) -> str | None:
     return json.dumps(body, ensure_ascii=False, sort_keys=True, separators=(",", ":"))
 
 
+def _normalize_currency(value) -> str:
+    currency = str(value or "").strip().upper() or "TWD"
+    if currency in {"NT", "NT$"}:
+        currency = "TWD"
+    if not _CURRENCY.fullmatch(currency):
+        raise SchemaError("幣別格式不正確")
+    return currency
+
+
 def _project_group(detail: dict, items_by_group: dict[str, list[dict]], offsets, images: dict[str, str]) -> dict:
     try:
         group = detail["groupBuy"]
@@ -329,9 +338,7 @@ def _project_group(detail: dict, items_by_group: dict[str, list[dict]], offsets,
     started = public_date(group.get("startedAt"), "startedAt")
     if not started:
         raise SchemaError("缺少成立日期")
-    currency = str(group.get("currency") or "").strip().upper() or "TWD"
-    if not _CURRENCY.fullmatch(currency):
-        raise SchemaError("幣別格式不正確")
+    currency = _normalize_currency(group.get("currency"))
     rate = None if group.get("chargeRate") is None else plain_number(group.get("chargeRate"))
     return {
         "id": group_id,
