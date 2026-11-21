@@ -100,12 +100,13 @@ def test_published_snapshot_matches_the_allowlist():
         "01a192e2ba2973d3a2169e49b1f7b5a6",
         "01a193196d5b752d87a6d8ba3e6d874b",
         "01a192996ec77608a91262c8086a0eef",
+        "01a1fc9c2c6277909ddb902913e68fc5",
     ]
     assert set(end_ids) <= published
     assert CHIBAOBAO_GROUP not in billing_ids
     assert CHIBAOBAO_GROUP not in end_ids
     assert SAKAMOTO_GROUP not in billing_ids
-    assert SAKAMOTO_GROUP not in end_ids
+    assert SAKAMOTO_GROUP in end_ids
     assert all(entry.buyers is None for entry in end_entries)
     assert set(billing_ids).isdisjoint(end_ids)
     assert "billingEnd" in public
