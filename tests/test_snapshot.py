@@ -39,13 +39,15 @@ def test_published_snapshot_matches_the_allowlist():
     published = {group["id"] for group in public["gbs"]}
     XIANYU_GROUP = "01a1d8a326e773d9be07c6063788e9dd"
     CHIBAOBAO_GROUP = "01a1fccfa14f7686bd3220d143d1d87d"
+    SAKAMOTO_GROUP = "01a1fc9c2c6277909ddb902913e68fc5"
     allow_ids = set(allow["include"])
     assert published <= allow_ids
     assert NEW_GROUP in published
     assert XIANYU_GROUP in allow_ids
     assert CHIBAOBAO_GROUP in allow_ids
-    assert len(allow_ids) == 142
-    assert allow_ids - published <= {CHIBAOBAO_GROUP}
+    assert SAKAMOTO_GROUP in allow_ids
+    assert len(allow_ids) == 143
+    assert allow_ids - published <= {SAKAMOTO_GROUP}
     if XIANYU_GROUP in published:
         xianyu = next(item for item in public["gbs"] if item["id"] == XIANYU_GROUP)
         charges = {order["b"]: order["charge"] for order in xianyu["o"]}
@@ -65,6 +67,15 @@ def test_published_snapshot_matches_the_allowlist():
         assert any("坂田银时" in name for name in item_names)
         assert any("土方十四郎" in name for name in item_names)
         assert {item[3] for order in chibaobao["o"] for item in order["it"]} == {"shipped"}
+    if SAKAMOTO_GROUP in published:
+        sakamoto = next(item for item in public["gbs"] if item["id"] == SAKAMOTO_GROUP)
+        charges = {order["b"]: order["charge"] for order in sakamoto["o"]}
+        assert charges["苦骸"] == 50
+        assert sakamoto["st"] == "arrived"
+        assert sakamoto["cur"] == "TWD"
+        item_names = {item[0] for order in sakamoto["o"] for item in order["it"]}
+        assert any("坂本辰馬" in name or "辰馬色紙" in name for name in item_names)
+        assert {item[3] for order in sakamoto["o"] for item in order["it"]} == {"packing"}
     group = next(item for item in public["gbs"] if item["id"] == NEW_GROUP)
     charges = {order["b"]: order["charge"] for order in group["o"]}
     assert charges["草凡"] == 800
@@ -93,6 +104,8 @@ def test_published_snapshot_matches_the_allowlist():
     assert set(end_ids) <= published
     assert CHIBAOBAO_GROUP not in billing_ids
     assert CHIBAOBAO_GROUP not in end_ids
+    assert SAKAMOTO_GROUP not in billing_ids
+    assert SAKAMOTO_GROUP not in end_ids
     assert all(entry.buyers is None for entry in end_entries)
     assert set(billing_ids).isdisjoint(end_ids)
     assert "billingEnd" in public
