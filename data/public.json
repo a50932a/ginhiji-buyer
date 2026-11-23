@@ -1,5 +1,5 @@
 {
-  "fetchedAt": "2026-11-23 21:20",
+  "fetchedAt": "2026-11-23 21:37",
   "gbs": [
     {
       "id": "01a20860e3aa7394aad9c2e3b92bb0b9",
@@ -16,16 +16,16 @@
         {
           "b": "Mita",
           "self": 0,
-          "gc": 135,
+          "gc": 136,
           "fc": 0,
-          "charge": 135,
+          "charge": 136,
           "sv": 0,
           "paid": 0,
-          "rem": 135,
+          "rem": 136,
           "it": [
             [
               "坂田银时牵手袜",
-              13.24,
+              13.31,
               1,
               "shipped",
               "",
@@ -33,7 +33,7 @@
             ],
             [
               "土方十四郎牵手袜",
-              13.24,
+              13.31,
               1,
               "shipped",
               "",
@@ -45,16 +45,16 @@
         {
           "b": "白米",
           "self": 0,
-          "gc": 135,
+          "gc": 136,
           "fc": 0,
-          "charge": 135,
+          "charge": 136,
           "sv": 0,
           "paid": 0,
-          "rem": 135,
+          "rem": 136,
           "it": [
             [
               "坂田银时牵手袜",
-              13.24,
+              13.31,
               1,
               "shipped",
               "",
@@ -62,7 +62,7 @@
             ],
             [
               "土方十四郎牵手袜",
-              13.24,
+              13.31,
               1,
               "shipped",
               "",
@@ -83,7 +83,7 @@
           "it": [
             [
               "坂田银时牵手袜",
-              13.42,
+              13.28,
               1,
               "shipped",
               "",
@@ -91,7 +91,7 @@
             ],
             [
               "土方十四郎牵手袜",
-              13.42,
+              13.28,
               1,
               "shipped",
               "",
@@ -128,7 +128,7 @@
               "真選組外套（Bomber Jacket / Black / XS-S）",
               2516,
               1,
-              "recorded",
+              "ordered",
               "",
               "01a2088d781975198b0f2acefbc4ffb7"
             ],
@@ -136,7 +136,7 @@
               "萬事屋外套（Bomber Jacket / White / XS-S）",
               2516,
               1,
-              "recorded",
+              "ordered",
               "",
               "01a2088d83477504a564cd022c0747ca"
             ]
@@ -157,7 +157,7 @@
               "真選組外套（Bomber Jacket / Black / XL-XXL）",
               2516,
               1,
-              "recorded",
+              "ordered",
               "",
               "01a2088d781975198b0f2acefbc4ffb7"
             ]
@@ -178,7 +178,7 @@
               "真選組外套（Bomber Jacket / Black / XS-S）",
               2516,
               1,
-              "recorded",
+              "ordered",
               "",
               "01a2088d781975198b0f2acefbc4ffb7"
             ]
@@ -199,7 +199,7 @@
               "雪中萬事屋毛衣（Yorozuya Snow Day Sweater / XS-S）",
               1845,
               1,
-              "recorded",
+              "ordered",
               "",
               "01a2088d8c6e74abaab6c44a18f42457"
             ]
@@ -220,7 +220,7 @@
               "定春毛衣（Sadaharu Sweater / M-L）",
               1845,
               1,
-              "recorded",
+              "ordered",
               "",
               "01a2088d86f0722f8cf78e7df12af215"
             ]
@@ -238,20 +238,20 @@
           "rem": 5032,
           "it": [
             [
-              "萬事屋外套（Bomber Jacket / White / M-L）",
-              2516,
-              1,
-              "recorded",
-              "",
-              "01a2088d83477504a564cd022c0747ca"
-            ],
-            [
               "真選組外套（Bomber Jacket / Black / XS-S）",
               2516,
               1,
               "recorded",
               "",
               "01a2088d781975198b0f2acefbc4ffb7"
+            ],
+            [
+              "萬事屋外套（Bomber Jacket / White / M-L）",
+              2516,
+              1,
+              "ordered",
+              "",
+              "01a2088d83477504a564cd022c0747ca"
             ]
           ],
           "pay": []
@@ -270,7 +270,7 @@
               "真選組外套（Bomber Jacket / Black / M-L）",
               2516,
               1,
-              "recorded",
+              "ordered",
               "",
               "01a2088d781975198b0f2acefbc4ffb7"
             ]
@@ -2049,7 +2049,7 @@
               "BITTERSWEET 夜叉ポニアオハルGraffiti〈前編〉",
               1210,
               1,
-              "packing",
+              "delivered",
               "",
               "01a18de2ddb573ed98f23a26470f15bd"
             ]
@@ -2588,7 +2588,7 @@
               "Over frow",
               1430,
               1,
-              "packing",
+              "delivered",
               "",
               "01a1770d46c7713a993efac8e3ff400a"
             ]
@@ -2616,7 +2616,7 @@
               "Over frow",
               1430,
               1,
-              "packing",
+              "delivered",
               "",
               "01a1770d46c7713a993efac8e3ff400a"
             ]
@@ -2707,7 +2707,7 @@
               "切り通し",
               1570,
               1,
-              "packing",
+              "completed",
               "",
               "01a18df1cb05760e94d65b257cc19f5f"
             ]
@@ -2735,7 +2735,7 @@
               "切り通し",
               1570,
               1,
-              "packing",
+              "delivered",
               "",
               "01a18df1cb05760e94d65b257cc19f5f"
             ]
@@ -2763,7 +2763,7 @@
               "切り通し",
               1570,
               1,
-              "packing",
+              "delivered",
               "",
               "01a18df1cb05760e94d65b257cc19f5f"
             ]
@@ -2875,7 +2875,7 @@
               "切り通し",
               1570,
               1,
-              "packing",
+              "delivered",
               "",
               "01a18df1cb05760e94d65b257cc19f5f"
             ]
@@ -2903,7 +2903,7 @@
               "切り通し",
               1570,
               1,
-              "packing",
+              "delivered",
               "",
               "01a18df1cb05760e94d65b257cc19f5f"
             ]
@@ -3022,7 +3022,7 @@
               "夢獄　上",
               1650,
               1,
-              "packing",
+              "delivered",
               "",
               "01a18df7b0cd77deac6e15d22b6185d2"
             ]
@@ -3050,7 +3050,7 @@
               "夢獄　上",
               1650,
               1,
-              "packing",
+              "delivered",
               "",
               "01a18df7b0cd77deac6e15d22b6185d2"
             ]
@@ -3349,7 +3349,7 @@
               "かわいいあの子と××がしたい!",
               785,
               1,
-              "packing",
+              "delivered",
               "",
               "01a16e11067d7050b8e171bb6d079227"
             ]
@@ -3461,7 +3461,7 @@
               "かわいいあの子と××がしたい!",
               785,
               1,
-              "packing",
+              "delivered",
               "",
               "01a16e11067d7050b8e171bb6d079227"
             ]
@@ -3517,7 +3517,7 @@
               "かわいいあの子と××がしたい!",
               785,
               1,
-              "completed",
+              "delivered",
               "",
               "01a16e11067d7050b8e171bb6d079227"
             ]
@@ -3614,7 +3614,7 @@
               "かわいいあの子と××がしたい!",
               785,
               1,
-              "packing",
+              "delivered",
               "",
               "01a16e11067d7050b8e171bb6d079227"
             ]
@@ -3670,7 +3670,7 @@
               "かわいいあの子と××がしたい!",
               785,
               1,
-              "packing",
+              "delivered",
               "",
               "01a16e11067d7050b8e171bb6d079227"
             ]
@@ -3830,7 +3830,7 @@
               "とびっきりやさしく",
               785,
               1,
-              "packing",
+              "delivered",
               "",
               "01a16e1c52fd747c8562669dc025127a"
             ]
@@ -3858,7 +3858,7 @@
               "とびっきりやさしく",
               785,
               1,
-              "packing",
+              "delivered",
               "",
               "01a16e1c52fd747c8562669dc025127a"
             ]
@@ -3886,7 +3886,7 @@
               "とびっきりやさしく",
               785,
               1,
-              "packing",
+              "completed",
               "",
               "01a16e1c52fd747c8562669dc025127a"
             ]
@@ -3914,7 +3914,7 @@
               "とびっきりやさしく",
               785,
               1,
-              "packing",
+              "delivered",
               "",
               "01a16e1c52fd747c8562669dc025127a"
             ]
@@ -3942,7 +3942,7 @@
               "とびっきりやさしく",
               785,
               1,
-              "packing",
+              "delivered",
               "",
               "01a16e1c52fd747c8562669dc025127a"
             ]
@@ -3970,7 +3970,7 @@
               "とびっきりやさしく",
               785,
               1,
-              "packing",
+              "delivered",
               "",
               "01a16e1c52fd747c8562669dc025127a"
             ]
@@ -4109,7 +4109,7 @@
               "Present Box",
               770,
               2,
-              "packing",
+              "delivered",
               "",
               "01a1672db1e174799e8e620ec50df54b"
             ]
@@ -4151,7 +4151,7 @@
               "Present Box",
               770,
               1,
-              "packing",
+              "delivered",
               "",
               "01a1672db1e174799e8e620ec50df54b"
             ]
@@ -4193,7 +4193,7 @@
               "Present Box",
               770,
               1,
-              "packing",
+              "delivered",
               "",
               "01a1672db1e174799e8e620ec50df54b"
             ]
@@ -4214,7 +4214,7 @@
               "Present Box",
               770,
               1,
-              "packing",
+              "delivered",
               "",
               "01a1672db1e174799e8e620ec50df54b"
             ]
@@ -4297,7 +4297,7 @@
               "Present Box",
               770,
               1,
-              "packing",
+              "delivered",
               "",
               "01a16730b0bf7089985fbe2d1683a718"
             ]
@@ -21063,9 +21063,9 @@
       "n": "Mita",
       "gc": 90,
       "q": 131,
-      "charge": 47577,
+      "charge": 47578,
       "paid": 30201,
-      "rem": 18015,
+      "rem": 18016,
       "off": 5097,
       "offs": [
         [
@@ -21301,8 +21301,8 @@
         [
           "万事屋银桑 银魂牵手袜",
           "closed",
-          135,
-          135
+          136,
+          136
         ],
         [
           "Bibisama 銀魂外套／毛衣（BFCM）",
@@ -21961,9 +21961,9 @@
       "n": "白米",
       "gc": 37,
       "q": 50,
-      "charge": 21061,
+      "charge": 21062,
       "paid": 14743,
-      "rem": 6318,
+      "rem": 6319,
       "off": 5178,
       "offs": [
         [
@@ -22103,8 +22103,8 @@
         [
           "万事屋银桑 银魂牵手袜",
           "closed",
-          135,
-          135
+          136,
+          136
         ]
       ]
     },
