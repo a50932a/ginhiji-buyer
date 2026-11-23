@@ -1,5 +1,5 @@
 {
-  "fetchedAt": "2026-11-23 20:52",
+  "fetchedAt": "2026-11-23 21:20",
   "gbs": [
     {
       "id": "01a20860e3aa7394aad9c2e3b92bb0b9",
@@ -96,6 +96,183 @@
               "shipped",
               "",
               ""
+            ]
+          ],
+          "pay": []
+        }
+      ]
+    },
+    {
+      "id": "01a2088d7816720ba3738e4d29c119a6",
+      "n": "Bibisama 銀魂外套／毛衣（BFCM）",
+      "src": "Bibisama",
+      "cur": "TWD",
+      "st": "closed",
+      "dt": "2026-11-23",
+      "img": "01a2088d781975198b0f2acefbc4ffb7",
+      "url": "https://bibisama.com/collections/black-friday-cyber-monday/products/gintama-bomber-jacket",
+      "rate": 1,
+      "fees": [],
+      "o": [
+        {
+          "b": "Mita",
+          "self": 0,
+          "gc": 5032,
+          "fc": 0,
+          "charge": 5032,
+          "sv": 0,
+          "paid": 0,
+          "rem": 5032,
+          "it": [
+            [
+              "真選組外套（Bomber Jacket / Black / XS-S）",
+              2516,
+              1,
+              "recorded",
+              "",
+              "01a2088d781975198b0f2acefbc4ffb7"
+            ],
+            [
+              "萬事屋外套（Bomber Jacket / White / XS-S）",
+              2516,
+              1,
+              "recorded",
+              "",
+              "01a2088d83477504a564cd022c0747ca"
+            ]
+          ],
+          "pay": []
+        },
+        {
+          "b": "佐佐",
+          "self": 0,
+          "gc": 2516,
+          "fc": 0,
+          "charge": 2516,
+          "sv": 0,
+          "paid": 0,
+          "rem": 2516,
+          "it": [
+            [
+              "真選組外套（Bomber Jacket / Black / XL-XXL）",
+              2516,
+              1,
+              "recorded",
+              "",
+              "01a2088d781975198b0f2acefbc4ffb7"
+            ]
+          ],
+          "pay": []
+        },
+        {
+          "b": "扣咩",
+          "self": 0,
+          "gc": 2516,
+          "fc": 0,
+          "charge": 2516,
+          "sv": 0,
+          "paid": 0,
+          "rem": 2516,
+          "it": [
+            [
+              "真選組外套（Bomber Jacket / Black / XS-S）",
+              2516,
+              1,
+              "recorded",
+              "",
+              "01a2088d781975198b0f2acefbc4ffb7"
+            ]
+          ],
+          "pay": []
+        },
+        {
+          "b": "星星",
+          "self": 0,
+          "gc": 1845,
+          "fc": 0,
+          "charge": 1845,
+          "sv": 0,
+          "paid": 0,
+          "rem": 1845,
+          "it": [
+            [
+              "雪中萬事屋毛衣（Yorozuya Snow Day Sweater / XS-S）",
+              1845,
+              1,
+              "recorded",
+              "",
+              "01a2088d8c6e74abaab6c44a18f42457"
+            ]
+          ],
+          "pay": []
+        },
+        {
+          "b": "草凡",
+          "self": 0,
+          "gc": 1845,
+          "fc": 0,
+          "charge": 1845,
+          "sv": 0,
+          "paid": 0,
+          "rem": 1845,
+          "it": [
+            [
+              "定春毛衣（Sadaharu Sweater / M-L）",
+              1845,
+              1,
+              "recorded",
+              "",
+              "01a2088d86f0722f8cf78e7df12af215"
+            ]
+          ],
+          "pay": []
+        },
+        {
+          "b": "魚魚",
+          "self": 0,
+          "gc": 5032,
+          "fc": 0,
+          "charge": 5032,
+          "sv": 0,
+          "paid": 0,
+          "rem": 5032,
+          "it": [
+            [
+              "萬事屋外套（Bomber Jacket / White / M-L）",
+              2516,
+              1,
+              "recorded",
+              "",
+              "01a2088d83477504a564cd022c0747ca"
+            ],
+            [
+              "真選組外套（Bomber Jacket / Black / XS-S）",
+              2516,
+              1,
+              "recorded",
+              "",
+              "01a2088d781975198b0f2acefbc4ffb7"
+            ]
+          ],
+          "pay": []
+        },
+        {
+          "b": "阿蝶",
+          "self": 1,
+          "gc": 0,
+          "fc": 0,
+          "charge": 0,
+          "sv": 0,
+          "paid": 0,
+          "rem": 0,
+          "it": [
+            [
+              "真選組外套（Bomber Jacket / Black / M-L）",
+              2516,
+              1,
+              "recorded",
+              "",
+              "01a2088d781975198b0f2acefbc4ffb7"
             ]
           ],
           "pay": []
@@ -20884,11 +21061,11 @@
     },
     {
       "n": "Mita",
-      "gc": 89,
-      "q": 129,
-      "charge": 42545,
+      "gc": 90,
+      "q": 131,
+      "charge": 47577,
       "paid": 30201,
-      "rem": 12983,
+      "rem": 18015,
       "off": 5097,
       "offs": [
         [
@@ -21126,6 +21303,12 @@
           "closed",
           135,
           135
+        ],
+        [
+          "Bibisama 銀魂外套／毛衣（BFCM）",
+          "closed",
+          5032,
+          5032
         ]
       ]
     },
@@ -21272,11 +21455,11 @@
     },
     {
       "n": "佐佐",
-      "gc": 14,
-      "q": 16,
-      "charge": 4210,
+      "gc": 15,
+      "q": 17,
+      "charge": 6726,
       "paid": 2478,
-      "rem": 1732,
+      "rem": 4248,
       "off": 0,
       "offs": [],
       "lines": [
@@ -21315,6 +21498,12 @@
           "closed",
           200,
           200
+        ],
+        [
+          "Bibisama 銀魂外套／毛衣（BFCM）",
+          "closed",
+          2516,
+          2516
         ]
       ]
     },
@@ -21529,11 +21718,11 @@
     },
     {
       "n": "扣咩",
-      "gc": 12,
-      "q": 12,
-      "charge": 3281,
+      "gc": 13,
+      "q": 13,
+      "charge": 5797,
       "paid": 1233,
-      "rem": 2048,
+      "rem": 4564,
       "off": 0,
       "offs": [],
       "lines": [
@@ -21584,6 +21773,12 @@
           "closed",
           734,
           734
+        ],
+        [
+          "Bibisama 銀魂外套／毛衣（BFCM）",
+          "closed",
+          2516,
+          2516
         ]
       ]
     },
@@ -21626,6 +21821,24 @@
           "closed",
           824,
           824
+        ]
+      ]
+    },
+    {
+      "n": "星星",
+      "gc": 1,
+      "q": 1,
+      "charge": 1845,
+      "paid": 0,
+      "rem": 1845,
+      "off": 0,
+      "offs": [],
+      "lines": [
+        [
+          "Bibisama 銀魂外套／毛衣（BFCM）",
+          "closed",
+          1845,
+          1845
         ]
       ]
     },
@@ -22052,11 +22265,11 @@
     },
     {
       "n": "草凡",
-      "gc": 44,
-      "q": 54,
-      "charge": 16254,
+      "gc": 45,
+      "q": 55,
+      "charge": 18099,
       "paid": 12625,
-      "rem": 3629,
+      "rem": 5474,
       "off": 1365,
       "offs": [
         [
@@ -22150,6 +22363,12 @@
           "closed",
           824,
           824
+        ],
+        [
+          "Bibisama 銀魂外套／毛衣（BFCM）",
+          "closed",
+          1845,
+          1845
         ]
       ]
     },
@@ -22315,11 +22534,11 @@
     },
     {
       "n": "魚魚",
-      "gc": 4,
-      "q": 5,
-      "charge": 1332,
+      "gc": 5,
+      "q": 7,
+      "charge": 6364,
       "paid": 978,
-      "rem": 354,
+      "rem": 5386,
       "off": 0,
       "offs": [],
       "lines": [
@@ -22334,6 +22553,12 @@
           "closed",
           131,
           131
+        ],
+        [
+          "Bibisama 銀魂外套／毛衣（BFCM）",
+          "closed",
+          5032,
+          5032
         ]
       ]
     },
