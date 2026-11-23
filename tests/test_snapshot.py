@@ -40,14 +40,16 @@ def test_published_snapshot_matches_the_allowlist():
     XIANYU_GROUP = "01a1d8a326e773d9be07c6063788e9dd"
     CHIBAOBAO_GROUP = "01a1fccfa14f7686bd3220d143d1d87d"
     SAKAMOTO_GROUP = "01a1fc9c2c6277909ddb902913e68fc5"
+    QIANSHOU_GROUP = "01a20860e3aa7394aad9c2e3b92bb0b9"
     allow_ids = set(allow["include"])
     assert published <= allow_ids
     assert NEW_GROUP in published
     assert XIANYU_GROUP in allow_ids
     assert CHIBAOBAO_GROUP in allow_ids
     assert SAKAMOTO_GROUP in allow_ids
-    assert len(allow_ids) == 143
-    assert allow_ids - published <= {SAKAMOTO_GROUP}
+    assert QIANSHOU_GROUP in allow_ids
+    assert len(allow_ids) == 144
+    assert allow_ids - published <= {QIANSHOU_GROUP}
     if XIANYU_GROUP in published:
         xianyu = next(item for item in public["gbs"] if item["id"] == XIANYU_GROUP)
         charges = {order["b"]: order["charge"] for order in xianyu["o"]}
@@ -76,6 +78,19 @@ def test_published_snapshot_matches_the_allowlist():
         item_names = {item[0] for order in sakamoto["o"] for item in order["it"]}
         assert any("坂本辰馬" in name or "辰馬色紙" in name for name in item_names)
         assert {item[3] for order in sakamoto["o"] for item in order["it"]} == {"packing"}
+    if QIANSHOU_GROUP in published:
+        qianshou = next(item for item in public["gbs"] if item["id"] == QIANSHOU_GROUP)
+        charges = {order["b"]: order["charge"] for order in qianshou["o"]}
+        assert charges["白米"] == 135
+        assert charges["Mita"] == 135
+        assert qianshou["st"] == "closed"
+        assert qianshou["cur"] == "CNY"
+        self_orders = [order for order in qianshou["o"] if order["b"] == "阿蝶"]
+        assert len(self_orders) == 1 and self_orders[0]["self"]
+        item_names = {item[0] for order in qianshou["o"] for item in order["it"]}
+        assert any("坂田银时" in name for name in item_names)
+        assert any("土方十四郎" in name for name in item_names)
+        assert {item[3] for order in qianshou["o"] for item in order["it"]} == {"shipped"}
     group = next(item for item in public["gbs"] if item["id"] == NEW_GROUP)
     charges = {order["b"]: order["charge"] for order in group["o"]}
     assert charges["草凡"] == 800
@@ -107,6 +122,8 @@ def test_published_snapshot_matches_the_allowlist():
     assert CHIBAOBAO_GROUP not in end_ids
     assert SAKAMOTO_GROUP not in billing_ids
     assert SAKAMOTO_GROUP in end_ids
+    assert QIANSHOU_GROUP not in billing_ids
+    assert QIANSHOU_GROUP not in end_ids
     assert all(entry.buyers is None for entry in end_entries)
     assert set(billing_ids).isdisjoint(end_ids)
     assert "billingEnd" in public
