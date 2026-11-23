@@ -1523,6 +1523,14 @@
     "01a1fcd3d16672989b14ebbb9a6cc194": {
       "etag": "\"01a1fcd3d16672989b14ebbb9a6cc194\"",
       "sha256": "6d8f212c5fa4da64edf1083d61f4b1025c30d7af4bd39d47e0a16c5d83e6d0b7"
+    },
+    "01a2086bced873ea941ea484f2a9e05e": {
+      "etag": "\"01a2086bced873ea941ea484f2a9e05e\"",
+      "sha256": "8499074cb348fa2b93c75b9e5b03b54855f722948597310bb6dc6698dd191f7b"
+    },
+    "01a208722e4273dc84d1d7fb19eda261": {
+      "etag": "\"01a208722e4273dc84d1d7fb19eda261\"",
+      "sha256": "a3161b93682233e2ca893d15523b30738e787e4343355fa9558d31d3e6cedd53"
     }
   }
 }
